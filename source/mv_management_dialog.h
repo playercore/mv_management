@@ -49,7 +49,7 @@ private:
     virtual BOOL PreTranslateMessage(MSG* pMsg);
     void simpleUpdate(_RecordsetPtr& recordset);
     void clearImageList();
-    void initImageList(CBitmap* bitmap);
+    bool initImageList(CBitmap* bitmap);
 
 	HICON m_icon;
 	CMyListCtrl m_allSongList;

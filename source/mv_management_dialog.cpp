@@ -423,9 +423,12 @@ void CMVManagementDialog::updateAllSongList(_RecordsetPtr recordset)
 
         if (!m_imageList.m_hImageList)
         {
-            initImageList(&bitmap);
+            if (!initImageList(&bitmap))
+                return;
+
             m_allSongList.SetImageList(&m_imageList, LVSIL_NORMAL);
         }
+
         int imageIndex = m_imageList.Add(&bitmap, RGB(0,0,0));
         int index = m_allSongList.InsertItem(row, str, imageIndex);
         
@@ -835,11 +838,15 @@ void CMVManagementDialog::clearImageList()
     }
 }
 
-void CMVManagementDialog::initImageList(CBitmap* bitmap)
+bool CMVManagementDialog::initImageList(CBitmap* bitmap)
 {
+    if (!bitmap->m_hObject)
+        return false;
+    
     BITMAP b;
     bitmap->GetBitmap(&b);
     int width = b.bmWidth;
     int height = b.bmHeight;
     m_imageList.Create(width, height, ILC_COLOR24, 1000, 100);
+    return true;
 }
