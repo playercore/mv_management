@@ -421,7 +421,6 @@ void CMVManagementDialog::updateAllSongList(_RecordsetPtr recordset)
             bitmap.LoadBitmap(IDB_BITMAP_NONE);
         }
 
-        BOOL r = bitmap.Attach(h);
         if (!m_imageList.m_hImageList)
         {
             initImageList(&bitmap);
@@ -429,7 +428,6 @@ void CMVManagementDialog::updateAllSongList(_RecordsetPtr recordset)
         }
         int imageIndex = m_imageList.Add(&bitmap, RGB(0,0,0));
         int index = m_allSongList.InsertItem(row, str, imageIndex);
-        bitmap.Detach();
         
         m_allSongList.SetItemData(index, row);
         for (long i = 1;i < num; ++i)

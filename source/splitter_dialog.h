@@ -5,7 +5,6 @@
 #include "afxcmn.h"
 #include "afxcview.h"
 
-#include "my_splitter_wnd.h"
 #include "resource/resource.h"
 
 #import "c:\program files\common files\system\ado\msado15.dll" \
