@@ -412,7 +412,7 @@ void CMVManagementDialog::updateAllSongList(_RecordsetPtr recordset)
         CString str = (LPWSTR)(_bstr_t)t;
         t = recordset->GetCollect((long)19);
         CBitmap bitmap;
-        if (t.vt != VT_NULL)
+        if (t.vt == VT_NULL)
         {
             CString picPath = (LPWSTR)(_bstr_t)t;
         }

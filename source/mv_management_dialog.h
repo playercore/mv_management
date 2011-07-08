@@ -20,6 +20,12 @@ class CMVManagementDialog : public CDialogEx
 {
 public:
 	enum { IDD = IDD_MV_MANAGEMENT_DIALOG };
+    enum KUploadState
+    {
+        uploaded = 0,
+        normal = 1,
+        fail = 2
+    };
 
 	CMVManagementDialog(CWnd* parent = NULL);	// 标准构造函数
 

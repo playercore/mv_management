@@ -194,7 +194,20 @@ void CMyListCtrl::OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult)
         return;
     }
 
+    if (GetStyle() & LVS_REPORT)
+        playMV(pNMItemActivate->iItem);
+       
 
+    *pResult = 0;
+}
+
+void CMyListCtrl::SetPathCol(int col)
+{
+    m_pathCol = col;
+}
+
+void CMyListCtrl::playMV(int row)
+{
     wstring path;
     wchar_t curPath[MAX_PATH + 1];
     GetCurrentDirectory(MAX_PATH,curPath);
@@ -207,7 +220,7 @@ void CMyListCtrl::OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult)
     cmd += L"KMPlayer.exe";
     CString str;
     str += L"\"";
-    str += GetItemText(pNMItemActivate->iItem, m_pathCol);
+    str += GetItemText(row, m_pathCol);
     str += L"\"";
 
     SHELLEXECUTEINFO  ShExecInfo;
@@ -222,11 +235,4 @@ void CMyListCtrl::OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult)
     ShExecInfo.hInstApp = NULL;
 
     BOOL r = ShellExecuteEx(&ShExecInfo);
-
-    *pResult = 0;
-}
-
-void CMyListCtrl::SetPathCol(int col)
-{
-    m_pathCol = col;
 }
