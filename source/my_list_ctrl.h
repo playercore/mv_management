@@ -1,7 +1,5 @@
 #pragma once
 
-// CMyListCtrl
-
 class CMyListCtrl : public CListCtrl
 {
 	DECLARE_DYNAMIC(CMyListCtrl)
@@ -23,6 +21,7 @@ private:
                                         LPARAM lParamData);
 	afx_msg void OnNMCustomdraw(NMHDR* pNMHDR, LRESULT* pResult);
     afx_msg void OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg LRESULT OnUploadDone(WPARAM w, LPARAM l);
     void playMV(int row);
     void previewMV(int item);
 

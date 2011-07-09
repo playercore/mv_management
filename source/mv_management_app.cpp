@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "third_party/chromium/base/at_exit.h"
+#include "third_party/chromium/base/time.h"
 #include "mv_management_dialog.h"
 
 #ifdef _DEBUG
@@ -11,17 +12,13 @@
 
 namespace
 {
-	base::AtExitManager* atExit = NULL;
+base::AtExitManager* atExit = NULL;
 }
-
 
 // CMVManagementApp
 BEGIN_MESSAGE_MAP(CMVManagementApp, CWinApp)
 	ON_COMMAND(ID_HELP, &CWinApp::OnHelp)
 END_MESSAGE_MAP()
-
-
-// CMVManagementApp 构造
 
 CMVManagementApp::CMVManagementApp()
 {
@@ -32,18 +29,14 @@ CMVManagementApp::CMVManagementApp()
 	// 将所有重要的初始化放置在 InitInstance 中
 }
 
-
-// 唯一的一个 CMVManagementApp 对象
-
 CMVManagementApp theApp;
-
-
-// Cmv_managementApp 初始化
-
 BOOL CMVManagementApp::InitInstance()
 {
 	assert(!atExit);
 	atExit = new base::AtExitManager;
+
+    // Make sure this singleton is the last one to be destroyed.
+    base::TimeTicks::Now();
     
 	CoInitialize(NULL);
 	// 如果一个运行在 Windows XP 上的应用程序清单指定要
@@ -63,7 +56,6 @@ BOOL CMVManagementApp::InitInstance()
 		AfxMessageBox(IDP_SOCKETS_INIT_FAILED);
 		return FALSE;
 	}
-
 
 	AfxEnableControlContainer();
 // 

@@ -1,6 +1,7 @@
 // my_list_ctrl.cpp : 实现文件
 //
 #include <string>
+#include <sstream>
 
 #include <boost/filesystem.hpp>
 
@@ -11,34 +12,50 @@
 #include "afxdb.h"
 #include "preview_dialog.h"
 #include "util.h"
+#include "preview_upload.h"
 
 using std::wstring;
+using std::wstringstream;
 using boost::filesystem3::path;
-    
-// CMyListCtrl
+
+namespace {
+enum CustomMessage { kUploadDone = WM_USER + 177 };
+
+class MyUploadCallback : public UploadCallback
+{
+public:
+    MyUploadCallback(CMyListCtrl* c) : c_(c) {}
+
+    virtual void Done(int identifier, int result)
+    {
+        if (c_)
+            c_->PostMessage(kUploadDone, identifier, result);
+    }
+
+private:
+    CMyListCtrl* c_;
+};
+}
 
 IMPLEMENT_DYNAMIC(CMyListCtrl, CListCtrl)
-
 CMyListCtrl::CMyListCtrl()
     : m_isAscending(true)
     , m_sortColumn(-1)
     , m_trackCountCol(-1)
     , m_pathCol(-1)
 {
-	
-
 }
 
 CMyListCtrl::~CMyListCtrl()
 {
 }
 
-
 BEGIN_MESSAGE_MAP(CMyListCtrl, CListCtrl)
     ON_NOTIFY_REFLECT(LVN_ITEMCHANGED, &CMyListCtrl::OnLvnItemchanged)
     ON_NOTIFY_REFLECT(LVN_COLUMNCLICK, &CMyListCtrl::OnColumnClick)
     ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, &CMyListCtrl::OnNMCustomdraw)
     ON_NOTIFY_REFLECT(NM_DBLCLK, &CMyListCtrl::OnNMDblclk)
+    ON_MESSAGE(kUploadDone, &CMyListCtrl::OnUploadDone)
 END_MESSAGE_MAP()
 
 // CMyListCtrl 消息处理程序
@@ -212,6 +229,17 @@ void CMyListCtrl::SetPathCol(int col)
     m_pathCol = col;
 }
 
+LRESULT CMyListCtrl::OnUploadDone(WPARAM w, LPARAM l)
+{
+    int id = w;
+    bool succeeded = !l;
+    wstringstream s;
+    s << L"预览图" << w << L"上传" << (succeeded ? L"成功" : L"失败");
+    MessageBox(s.str().c_str(), succeeded ? L"信息" : L"错误",
+               succeeded ? MB_OK | MB_ICONINFORMATION : MB_OK | MB_ICONERROR);
+    return 0;
+}
+
 void CMyListCtrl::playMV(int row)
 {
     wstring path;
@@ -251,5 +279,13 @@ void CMyListCtrl::previewMV(int item)
     wstring md5(text2.GetBuffer());
     path previewPath(GetMvPreviewPath() + md5 + L".jpg");
     PreviewDialog dialog(this, mvPath, previewPath, 6000);
-    dialog.DoModal();
+    if (IDOK == dialog.DoModal()) {
+        CString text0 = GetItemText(item, 0);
+        wstringstream songId(text0.GetBuffer());
+        int identifier;
+        songId >> identifier;
+        std::shared_ptr<MyUploadCallback> c(
+            std::make_shared<MyUploadCallback>(this));
+        PreviewUpload::Upload(previewPath, c, identifier);
+    }
 }

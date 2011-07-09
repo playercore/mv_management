@@ -13,6 +13,7 @@ extern "C" {
 #include "libswscale/swscale.h"
 }
 #include "util.h"
+#include "jpeg_tool.h"
 
 using std::wstring;
 using std::wstringstream;
@@ -125,6 +126,7 @@ void PreviewDialog::DoDataExchange(CDataExchange* dataExch)
 
 BEGIN_MESSAGE_MAP(PreviewDialog, CDialog)
     ON_WM_HSCROLL()
+    ON_BN_CLICKED(IDOK, &PreviewDialog::OnBnClickedOk)
 END_MESSAGE_MAP()
 
 BOOL PreviewDialog::OnInitDialog()
@@ -141,6 +143,27 @@ BOOL PreviewDialog::OnInitDialog()
     GeneratePreview(lastPreviewTime_);
     UpdatePreviewTime();
     return TRUE;
+}
+
+void PreviewDialog::OnHScroll(UINT code, UINT pos, CScrollBar* scrollBar)
+{
+    if ((SB_THUMBTRACK == LOWORD(code)) || (SB_ENDSCROLL == LOWORD(code)))
+        if (duraion_) {
+            int64 time = timeSlider_.GetPos() * duraion_ / 100;
+            if (lastPreviewTime_ != time) {
+                GeneratePreview(time);
+                lastPreviewTime_ = time;
+                UpdatePreviewTime();
+            }
+        }
+
+    CDialog::OnHScroll(code, pos, scrollBar);
+}
+
+void PreviewDialog::OnBnClickedOk()
+{
+    Jpeg::SaveToJPEGFile(previewPath_, frameRGB_.get());
+    CDialog::OnOK();
 }
 
 void PreviewDialog::Open()
@@ -238,21 +261,6 @@ void PreviewDialog::GeneratePreview(int64 time)
               codecCont_->height, frameRGB_.get()->data,
               frameRGB_.get()->linesize);
     preview_.SetPicture(frameRGB_.get());
-}
-
-void PreviewDialog::OnHScroll(UINT code, UINT pos, CScrollBar* scrollBar)
-{
-    if ((SB_THUMBTRACK == LOWORD(code)) || (SB_ENDSCROLL == LOWORD(code)))
-        if (duraion_) {
-            int64 time = timeSlider_.GetPos() * duraion_ / 100;
-            if (lastPreviewTime_ != time) {
-                GeneratePreview(time);
-                lastPreviewTime_ = time;
-                UpdatePreviewTime();
-            }
-        }
-
-    CDialog::OnHScroll(code, pos, scrollBar);
 }
 
 void PreviewDialog::UpdatePreviewTime()

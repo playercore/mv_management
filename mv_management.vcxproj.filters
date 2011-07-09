@@ -13,6 +13,7 @@
     <ClCompile Include="source\jpeg_tool.cpp" />
     <ClCompile Include="source\preview_dialog.cpp" />
     <ClCompile Include="source\util.cpp" />
+    <ClCompile Include="source\preview_upload.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\targetver.h" />
@@ -34,6 +35,7 @@
     <ClInclude Include="source\jpeg_tool.h" />
     <ClInclude Include="source\preview_dialog.h" />
     <ClInclude Include="source\util.h" />
+    <ClInclude Include="source\preview_upload.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="%28resource%29">

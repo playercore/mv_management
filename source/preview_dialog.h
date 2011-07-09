@@ -48,6 +48,7 @@ protected:
     virtual void DoDataExchange(CDataExchange* dataExch); // DDX/DDV support
     virtual BOOL OnInitDialog();
     afx_msg void OnHScroll(UINT code, UINT pos, CScrollBar* scrollBar);
+    afx_msg void OnBnClickedOk();
 
     DECLARE_MESSAGE_MAP()
 
