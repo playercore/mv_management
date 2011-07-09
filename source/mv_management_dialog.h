@@ -6,14 +6,12 @@
 
 #include "third_party/chromium/base/thread.h"
 #include "resource/resource.h" // main symbols
-//#include "my_property_page.h"
+
 #include "my_list_ctrl.h"
 #include "all_song_list_dialog.h"
 #include "splitter_dialog.h"
 #include "list_item_define.h"
-#import "c:\program files\common files\system\ado\msado15.dll" \
-    no_namespace rename("EOF","adoEOF") rename("BOF","adoBOF")
-
+#import "msado15.dll" no_namespace rename("EOF","adoEOF") rename("BOF","adoBOF")
 
 // CMVManagementDialog ¶Ô»°¿ò
 class CMVManagementDialog : public CDialogEx

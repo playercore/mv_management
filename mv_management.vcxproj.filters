@@ -10,6 +10,7 @@
     <ClCompile Include="source\my_right_listview.cpp" />
     <ClCompile Include="source\search_dialog.cpp" />
     <ClCompile Include="source\common.cpp" />
+    <ClCompile Include="source\jpeg_tool.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\targetver.h" />
@@ -28,6 +29,7 @@
     <ClInclude Include="source\my_right_listview.h" />
     <ClInclude Include="source\search_dialog.h" />
     <ClInclude Include="source\common.h" />
+    <ClInclude Include="source\jpeg_tool.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="%28resource%29">

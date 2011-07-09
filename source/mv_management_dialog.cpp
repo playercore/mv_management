@@ -1,8 +1,11 @@
 #include "mv_management_dialog.h"
 
+#include <cmath>
 #include <string>
+#include <memory>
 #include <vld.h>
 
+#include <boost/filesystem.hpp>
 #include "afxdialogex.h"
 #include "afxdb.h"
 #include <winsock2.h>
@@ -10,13 +13,42 @@
 #include "mv_management_app.h"
 #include "search_dialog.h"
 #include "common.h"
+#include "jpeg_tool.h"
 
 using std::wstring;
+using std::unique_ptr;
+using boost::filesystem3::path;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
+namespace {
+void LoadJPEG(CBitmap* bitmap, const wstring& jpegPath)
+{
+    assert(bitmap);
+    void* decoded = Jpeg::LoadFromJPEGFile(jpegPath);
+    if (!decoded) {
+        bitmap->LoadBitmap(IDB_BITMAP_NONE);
+        return;
+    }
+
+    unique_ptr<int8> autoRelease(reinterpret_cast<int8*>(decoded));
+    BITMAPINFOHEADER* header = reinterpret_cast<BITMAPINFOHEADER*>(decoded);
+    void* bits = NULL;
+    HBITMAP j = CreateDIBSection(NULL, reinterpret_cast<BITMAPINFO*>(header),
+                                 DIB_RGB_COLORS, &bits, NULL, 0);
+    if (!j || !bits)
+        return;
+
+    memcpy(
+        bits, header + 1,
+        (header->biWidth * header->biBitCount + 31) / 32 * 4 *
+            abs(header->biHeight));
+    bitmap->Attach(j);
+    return;
+}
+}
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
@@ -408,19 +440,12 @@ void CMVManagementDialog::updateAllSongList(_RecordsetPtr recordset)
     DWORD begin = GetTickCount();
     while (!recordset->adoEOF)
     {
-        _variant_t t = recordset->GetCollect((long)0);
+        _variant_t t = recordset->GetCollect(0L);
         CString str = (LPWSTR)(_bstr_t)t;
-        t = recordset->GetCollect((long)19);
+        t = recordset->GetCollect(2L);
+        wstring md5 = static_cast<wchar_t*>(static_cast<_bstr_t>(t));
         CBitmap bitmap;
-        if (t.vt == VT_NULL)
-        {
-            CString picPath = (LPWSTR)(_bstr_t)t;
-        }
-        else
-        {
-            bitmap.LoadBitmap(IDB_BITMAP_NONE);
-        }
-
+        LoadJPEG(&bitmap, L"\\\\192.168.0.200\\mv_preview\\" + md5 + L".jpg");
         if (!m_imageList.m_hImageList)
         {
             if (!initImageList(&bitmap))

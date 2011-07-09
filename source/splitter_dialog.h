@@ -7,8 +7,7 @@
 
 #include "resource/resource.h"
 
-#import "c:\program files\common files\system\ado\msado15.dll" \
-    no_namespace rename("EOF","adoEOF") rename("BOF","adoBOF")
+#import "msado15.dll" no_namespace rename("EOF","adoEOF") rename("BOF","adoBOF")
 
 // CSplitterDialog ¶Ô»°¿ò
 
