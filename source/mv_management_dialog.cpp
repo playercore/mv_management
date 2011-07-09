@@ -14,6 +14,7 @@
 #include "search_dialog.h"
 #include "common.h"
 #include "jpeg_tool.h"
+#include "util.h"
 
 using std::wstring;
 using std::unique_ptr;
@@ -445,7 +446,7 @@ void CMVManagementDialog::updateAllSongList(_RecordsetPtr recordset)
         t = recordset->GetCollect(2L);
         wstring md5 = static_cast<wchar_t*>(static_cast<_bstr_t>(t));
         CBitmap bitmap;
-        LoadJPEG(&bitmap, L"\\\\192.168.0.200\\mv_preview\\" + md5 + L".jpg");
+        LoadJPEG(&bitmap, GetMvPreviewPath() + md5 + L".jpg");
         if (!m_imageList.m_hImageList)
         {
             if (!initImageList(&bitmap))

@@ -24,6 +24,7 @@ private:
 	afx_msg void OnNMCustomdraw(NMHDR* pNMHDR, LRESULT* pResult);
     afx_msg void OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult);
     void playMV(int row);
+    void previewMV(int item);
 
     bool m_isAscending;
     int m_sortColumn;

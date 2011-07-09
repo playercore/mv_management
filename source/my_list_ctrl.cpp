@@ -2,13 +2,18 @@
 //
 #include <string>
 
+#include <boost/filesystem.hpp>
+
 #include "mfc_predefine.h"
 #include "my_list_ctrl.h"
 #include "list_item_define.h"
 #include "common.h"
 #include "afxdb.h"
+#include "preview_dialog.h"
+#include "util.h"
 
 using std::wstring;
+using boost::filesystem3::path;
     
 // CMyListCtrl
 
@@ -196,7 +201,8 @@ void CMyListCtrl::OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult)
 
     if (GetStyle() & LVS_REPORT)
         playMV(pNMItemActivate->iItem);
-       
+    else
+        previewMV(pNMItemActivate->iItem);
 
     *pResult = 0;
 }
@@ -235,4 +241,15 @@ void CMyListCtrl::playMV(int row)
     ShExecInfo.hInstApp = NULL;
 
     BOOL r = ShellExecuteEx(&ShExecInfo);
+}
+
+void CMyListCtrl::previewMV(int item)
+{
+    CString text1 = GetItemText(item, 1);
+    CString text2 = GetItemText(item, 2);
+    path mvPath(text1.GetBuffer());
+    wstring md5(text2.GetBuffer());
+    path previewPath(GetMvPreviewPath() + md5 + L".jpg");
+    PreviewDialog dialog(this, mvPath, previewPath, 6000);
+    dialog.DoModal();
 }
