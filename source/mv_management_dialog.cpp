@@ -437,7 +437,7 @@ void CMVManagementDialog::updateAllSongList(_RecordsetPtr recordset)
     int row = 0;
     m_allSongList.DeleteAllItems();
     m_allSongList.SetRedraw(FALSE); 
-    clearImageList();
+    m_imageList.DeleteImageList();
     DWORD begin = GetTickCount();
     while (!recordset->adoEOF)
     {
@@ -451,8 +451,6 @@ void CMVManagementDialog::updateAllSongList(_RecordsetPtr recordset)
         {
             if (!initImageList(&bitmap))
                 return;
-
-            m_allSongList.SetImageList(&m_imageList, LVSIL_NORMAL);
         }
 
         int imageIndex = m_imageList.Add(&bitmap, RGB(0,0,0));
@@ -479,7 +477,6 @@ void CMVManagementDialog::updateAllSongList(_RecordsetPtr recordset)
 
 void CMVManagementDialog::OnClose()
 {
-    clearImageList();
     m_connection->Close(); 
     CDialogEx::OnClose();
 }
@@ -853,26 +850,16 @@ void CMVManagementDialog::simpleUpdate(_RecordsetPtr& recordset)
 
 }
 
-void CMVManagementDialog::clearImageList()
-{
-    if (!m_imageList.m_hImageList)
-        return;
-
-    for (int i = 0; i < m_imageList.GetImageCount(); i++)
-    {
-        m_imageList.Remove(i);
-    }
-}
-
 bool CMVManagementDialog::initImageList(CBitmap* bitmap)
 {
-    if (!bitmap->m_hObject)
+    if (!bitmap->GetSafeHandle())
         return false;
     
-    BITMAP b;
-    bitmap->GetBitmap(&b);
-    int width = b.bmWidth;
-    int height = b.bmHeight;
-    m_imageList.Create(width, height, ILC_COLOR24, 1000, 100);
+    BITMAP i;
+    bitmap->GetBitmap(&i);
+    if (!m_imageList.Create(i.bmWidth, i.bmHeight, ILC_COLOR24, 0, 100))
+        return false;
+
+    m_allSongList.SetImageList(&m_imageList, LVSIL_NORMAL);
     return true;
 }

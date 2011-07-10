@@ -52,7 +52,6 @@ private:
     afx_msg void OnSize(UINT nType, int cx, int cy);
     virtual BOOL PreTranslateMessage(MSG* pMsg);
     void simpleUpdate(_RecordsetPtr& recordset);
-    void clearImageList();
     bool initImageList(CBitmap* bitmap);
 
 	HICON m_icon;

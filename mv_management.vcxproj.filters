@@ -14,6 +14,7 @@
     <ClCompile Include="source\preview_dialog.cpp" />
     <ClCompile Include="source\util.cpp" />
     <ClCompile Include="source\preview_upload.cpp" />
+    <ClCompile Include="source\png_tool.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\targetver.h" />
@@ -36,6 +37,7 @@
     <ClInclude Include="source\preview_dialog.h" />
     <ClInclude Include="source\util.h" />
     <ClInclude Include="source\preview_upload.h" />
+    <ClInclude Include="source\png_tool.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="%28resource%29">
@@ -55,6 +57,12 @@
       <Filter>%28resource%29</Filter>
     </None>
     <None Include="resource\none.bmp">
+      <Filter>%28resource%29</Filter>
+    </None>
+    <None Include="resource\upload_failed.PNG">
+      <Filter>%28resource%29</Filter>
+    </None>
+    <None Include="resource\upload_done.png">
       <Filter>%28resource%29</Filter>
     </None>
   </ItemGroup>

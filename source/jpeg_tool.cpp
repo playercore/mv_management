@@ -7,11 +7,11 @@
 #include <windows.h>
 
 extern "C" {
-#include "libavformat/avformat.h"
-#include "libavcodec/avcodec.h"
-#include "libswscale/swscale.h"
-#include "jconfig.h"
-#include "jpeglib.h"
+#include "package/ffmpeg/include/libavformat/avformat.h"
+#include "package/ffmpeg/include/libavcodec/avcodec.h"
+#include "package/ffmpeg/include/libswscale/swscale.h"
+#include "package/jpeg/include/jconfig.h"
+#include "package/jpeg/include/jpeglib.h"
 }
 #include "basictypes.h"
 

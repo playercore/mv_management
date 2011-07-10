@@ -29,6 +29,8 @@ private:
     int m_sortColumn;
     int m_trackCountCol;
     int m_pathCol;
+    CBitmap m_uploadDone;
+    CBitmap m_uploadFailed;
 };
 
 

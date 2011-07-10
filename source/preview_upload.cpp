@@ -8,9 +8,9 @@
 
 #include "third_party/chromium/base/singleton.h"
 #include "third_party/chromium/base/thread.h"
-#include "third_party/curl/include/curl/curl.h"
+#include "package/libcurl/include/include/curl/curl.h"
 extern "C" {
-#include "third_party/curl/lib/curl_md5.h"
+#include "package/libcurl/include/lib/curl_md5.h"
 };
 #include "util.h"
 
@@ -22,7 +22,6 @@ using std::stringstream;
 using std::function;
 using std::bind;
 using std::placeholders::_1;
-using std::placeholders::_2;
 using boost::gregorian::date;
 using boost::gregorian::day_clock;
 using boost::gregorian::to_iso_string;
@@ -35,18 +34,6 @@ void Report(UploadCallback* c, int id, int* r)
     if (c && r)
         c->Done(id, *r);
 }
-
-template <typename T, typename F>
-class SmartFunction
-{
-public:
-    SmartFunction(const T& t, const F& f) : t_(t), f_(f) {}
-    ~SmartFunction() { f_(t_); }
-
-private:
-    const T& t_;
-    const F& f_;
-};
 
 class AsyncUpload : public Singleton<AsyncUpload>
 {
@@ -74,7 +61,7 @@ private:
         int result = -1;
         function<void (UploadCallback*)> reportFunc =
             bind(Report, _1, identifier, &result);
-        SmartFunction<UploadCallback*, function<void (UploadCallback*)>>
+        SmartInvokation<UploadCallback*, function<void (UploadCallback*)>>
             autoReport(callback.get(), reportFunc);
 
         unique_ptr<CURL, void(*)(CURL*)> curl(curl_easy_init(),

@@ -18,6 +18,7 @@
     <ClCompile Include="source\my_left_listview.cpp" />
     <ClCompile Include="source\my_list_ctrl.cpp" />
     <ClCompile Include="source\my_right_listview.cpp" />
+    <ClCompile Include="source\png_tool.cpp" />
     <ClCompile Include="source\preview_dialog.cpp" />
     <ClCompile Include="source\preview_upload.cpp" />
     <ClCompile Include="source\search_dialog.cpp" />
@@ -36,6 +37,7 @@
     <ClInclude Include="source\my_left_listview.h" />
     <ClInclude Include="source\my_list_ctrl.h" />
     <ClInclude Include="source\my_right_listview.h" />
+    <ClInclude Include="source\png_tool.h" />
     <ClInclude Include="source\preview_dialog.h" />
     <ClInclude Include="source\preview_upload.h" />
     <ClInclude Include="source\search_dialog.h" />
@@ -52,6 +54,8 @@
     <None Include="resource\mv_management.ico" />
     <None Include="resource\mv_management.rc2" />
     <None Include="resource\none.bmp" />
+    <None Include="resource\upload_done.png" />
+    <None Include="resource\upload_failed.PNG" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{85A8D5B9-ECAD-4206-B3F4-2A6C6AFD86BC}</ProjectGuid>
@@ -87,13 +91,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IntDir>$(SolutionDir)$(Configuration)\obj\$(ProjectName)\</IntDir>
-    <IncludePath>$(BOOST_DIR);source;.;source/third_party/chromium;package/ffmpeg/include;package/jpeg/include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(BOOST_DIR)\stage\lib;lib\$(Configuration);package\ffmpeg\lib;package\jpeg\lib;$(CommonProgramFiles)\system\ado;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(BOOST_DIR);source;.;source/third_party/chromium;package/ffmpeg/include;package/zlib/include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(BOOST_DIR)\stage\lib;lib\$(Configuration);package\ffmpeg\lib;package\jpeg\lib;package\libpng\lib;package\libcurl\lib;$(CommonProgramFiles)\system\ado;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(BOOST_DIR);source;.;source/third_party/chromium;package/ffmpeg/include;package/jpeg/include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(BOOST_DIR)\stage\lib;lib\$(Configuration);package\ffmpeg\lib;package\jpeg\lib;$(CommonProgramFiles)\system\ado;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(BOOST_DIR);source;.;source/third_party/chromium;package/ffmpeg/include;package/zlib/include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(BOOST_DIR)\stage\lib;lib\$(Configuration);package\ffmpeg\lib;package\jpeg\lib;package\libpng\lib;package\libcurl\lib;$(CommonProgramFiles)\system\ado;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -101,12 +105,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;CURL_STATICLIB;BUILDING_LIBCURL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4996;4099</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>chromium.lib;dbghelp.lib;ws2_32.lib;avcodec.lib;avformat.lib;avutil.lib;swscale.lib;libjpeg.a;libcurl.lib;wldap32.lib</AdditionalDependencies>
+      <AdditionalDependencies>chromium.lib;dbghelp.lib;avcodec.lib;avformat.lib;avutil.lib;swscale.lib;libjpeg.a;libcurld.lib;wldap32.lib;libpng14d.lib</AdditionalDependencies>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -127,14 +131,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;CURL_STATICLIB;BUILDING_LIBCURL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4996;4099</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>uafxcw.lib;libcmt.lib;chromium.lib;dbghelp.lib;avcodec.lib;avformat.lib;avutil.lib;swscale.lib;libjpeg.a;libcurl.lib;wldap32.lib</AdditionalDependencies>
+      <AdditionalDependencies>uafxcw.lib;libcmt.lib;chromium.lib;dbghelp.lib;avcodec.lib;avformat.lib;avutil.lib;swscale.lib;libjpeg.a;libcurl.lib;wldap32.lib;libpng14.lib</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>uafxcw.lib;libcmt.lib</IgnoreSpecificDefaultLibraries>
