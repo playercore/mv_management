@@ -1,7 +1,6 @@
 #include "preview_dialog.h"
 
 #include <cassert>
-#include <string>
 #include <sstream>
 #include <memory>
 
@@ -104,8 +103,11 @@ PreviewDialog::PreviewDialog(CWnd* parent, const path& mvPath,
     , codecCont_(NULL, avcodec_close)
     , frameRGB_(avcodec_alloc_frame(), av_free)
     , videoStreamIndex_(-1)
-    , duraion_(0)
+    , duraion_(1)
     , lastPreviewTime_(initialPreviewTime)
+    , firstMinOnly_()
+    , timeRangeText_()
+    , timeRange_(1)
 {
     assert(is_regular_file(mvPath_));
     av_register_all();
@@ -127,11 +129,14 @@ void PreviewDialog::DoDataExchange(CDataExchange* dataExch)
     DDX_Control(dataExch, IDC_SLIDER_TIMESTAMP, timeSlider_);
     DDX_Control(dataExch, IDC_STATIC_PREVIEW, preview_);
     DDX_Control(dataExch, IDC_STATIC_TIPS, tips_);
+    DDX_Control(dataExch, IDC_CHECK_1_MIN_ONLY, firstMinOnly_);
+    DDX_Control(dataExch, IDC_STATIC_TIME_RANGE, timeRangeText_);
 }
 
 BEGIN_MESSAGE_MAP(PreviewDialog, CDialog)
     ON_WM_HSCROLL()
     ON_BN_CLICKED(IDOK, &PreviewDialog::OnBnClickedOk)
+    ON_BN_CLICKED(IDC_CHECK_1_MIN_ONLY, &PreviewDialog::OnBnClickedCheck1MinOnly)
 END_MESSAGE_MAP()
 
 BOOL PreviewDialog::OnInitDialog()
@@ -143,10 +148,22 @@ BOOL PreviewDialog::OnInitDialog()
 
     Open();
 
+    const int64 oneMinute = 60000;
     timeSlider_.SetRange(0, 100);
-    timeSlider_.SetPos(static_cast<int>(lastPreviewTime_ * 100 / duraion_));
+    if (lastPreviewTime_ > oneMinute) {
+        timeRange_ = duraion_;
+        firstMinOnly_.SetCheck(FALSE);
+    } else {
+        timeRange_ = (duraion_ < oneMinute) ? duraion_ : oneMinute;
+        firstMinOnly_.SetCheck(TRUE);
+    }
+
+    timeSlider_.SetPos(static_cast<int>(lastPreviewTime_ * 100 / timeRange_));
+    timeRangeText_.SetWindowText(CreatePreviewTime(timeRange_).c_str());
+
     GeneratePreview(lastPreviewTime_);
-    UpdatePreviewTime();
+    tips_.SetWindowText(
+        (L"Preview at " + CreatePreviewTime(lastPreviewTime_)).c_str());
     return TRUE;
 }
 
@@ -154,11 +171,13 @@ void PreviewDialog::OnHScroll(UINT code, UINT pos, CScrollBar* scrollBar)
 {
     if ((SB_THUMBTRACK == LOWORD(code)) || (SB_ENDSCROLL == LOWORD(code)))
         if (duraion_) {
-            int64 time = timeSlider_.GetPos() * duraion_ / 100;
+            int64 time = timeSlider_.GetPos() * timeRange_ / 100;
             if (lastPreviewTime_ != time) {
                 GeneratePreview(time);
                 lastPreviewTime_ = time;
-                UpdatePreviewTime();
+                tips_.SetWindowText(
+                    (L"Preview at " + CreatePreviewTime(
+                        lastPreviewTime_)).c_str());
             }
         }
 
@@ -169,6 +188,18 @@ void PreviewDialog::OnBnClickedOk()
 {
     Jpeg::SaveToJPEGFile(previewPath_, frameRGB_.get());
     CDialog::OnOK();
+}
+
+void PreviewDialog::OnBnClickedCheck1MinOnly()
+{
+    const int64 oneMinute = 60000;
+    if (!firstMinOnly_.GetCheck())
+        timeRange_ = duraion_;
+    else
+        timeRange_ = (duraion_ < oneMinute) ? duraion_ : oneMinute;
+
+    timeSlider_.SetPos(static_cast<int>(lastPreviewTime_ * 100 / timeRange_));
+    timeRangeText_.SetWindowText(CreatePreviewTime(timeRange_).c_str());
 }
 
 void PreviewDialog::Open()
@@ -209,6 +240,8 @@ void PreviewDialog::Open()
         return;
 
     duraion_ = media_->duration / 1000;
+    if (!duraion_)
+        duraion_ = 1;
 
     // Initialize RGB format frame.
     const int previewWidth = codecCont_->width / 6;
@@ -268,9 +301,9 @@ void PreviewDialog::GeneratePreview(int64 time)
     preview_.SetPicture(frameRGB_.get());
 }
 
-void PreviewDialog::UpdatePreviewTime()
+wstring PreviewDialog::CreatePreviewTime(int64 t)
 {
-    int64 sec = lastPreviewTime_ / 1000;
+    int64 sec = t / 1000;
     int64 min = sec / 60;
     sec = sec - min * 60;
     wstringstream m;
@@ -282,5 +315,5 @@ void PreviewDialog::UpdatePreviewTime()
     s.fill('0');
     s.width(2);
     s << sec;
-    tips_.SetWindowText((L"Preview at " + m.str() + L" : " + s.str()).c_str());
+    return m.str() + L" : " + s.str();
 }

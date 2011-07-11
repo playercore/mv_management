@@ -2,6 +2,7 @@
 #define _PREVIEW_DIALOG_H_
 
 #include <memory>
+#include <string>
 
 #include <boost/filesystem.hpp>
 #include "mfc_predefine.h"
@@ -49,15 +50,17 @@ public:
 protected:
     virtual void DoDataExchange(CDataExchange* dataExch); // DDX/DDV support
     virtual BOOL OnInitDialog();
-    afx_msg void OnHScroll(UINT code, UINT pos, CScrollBar* scrollBar);
-    afx_msg void OnBnClickedOk();
 
     DECLARE_MESSAGE_MAP()
+
+    afx_msg void OnHScroll(UINT code, UINT pos, CScrollBar* scrollBar);
+    afx_msg void OnBnClickedOk();
+    afx_msg void OnBnClickedCheck1MinOnly();
 
 private:
     void Open();
     void GeneratePreview(int64 time);
-    void UpdatePreviewTime();
+    std::wstring CreatePreviewTime(int64 t);
 
     boost::filesystem3::path mvPath_;
     boost::filesystem3::path previewPath_;
@@ -70,6 +73,9 @@ private:
     int64 duraion_;
     int64 lastPreviewTime_;
     CStatic tips_;
+    CButton firstMinOnly_;
+    CStatic timeRangeText_;
+    int64 timeRange_;
 };
 
 #endif  // _PREVIEW_DIALOG_H_
