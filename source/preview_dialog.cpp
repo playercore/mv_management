@@ -116,6 +116,11 @@ PreviewDialog::~PreviewDialog()
 {
 }
 
+int64 PreviewDialog::GetPreivewTime()
+{
+    return lastPreviewTime_;
+}
+
 void PreviewDialog::DoDataExchange(CDataExchange* dataExch)
 {
     CDialog::DoDataExchange(dataExch);

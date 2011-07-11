@@ -44,6 +44,8 @@ public:
                   int64 initialPreviewTime);
     virtual ~PreviewDialog();
 
+    int64 GetPreivewTime();
+
 protected:
     virtual void DoDataExchange(CDataExchange* dataExch); // DDX/DDV support
     virtual BOOL OnInitDialog();

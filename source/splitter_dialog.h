@@ -14,7 +14,7 @@
 class CSplitterDialog : public CDialog
 {
 public:
-	enum { IDD = IDD_DIALOG2 };
+	enum { IDD = IDD_DIALOG_SPLITTER };
 	CSplitterDialog(CWnd* pParent = NULL);   // 标准构造函数
     CSplitterDialog(_ConnectionPtr connect, CWnd* pParent = NULL);
 	virtual ~CSplitterDialog();

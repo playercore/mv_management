@@ -3,8 +3,6 @@
   <ItemGroup>
     <ClCompile Include="source\mv_management_app.cpp" />
     <ClCompile Include="source\mv_management_dialog.cpp" />
-    <ClCompile Include="source\my_list_ctrl.cpp" />
-    <ClCompile Include="source\all_song_list_dialog.cpp" />
     <ClCompile Include="source\splitter_dialog.cpp" />
     <ClCompile Include="source\my_left_listview.cpp" />
     <ClCompile Include="source\my_right_listview.cpp" />
@@ -15,6 +13,8 @@
     <ClCompile Include="source\util.cpp" />
     <ClCompile Include="source\preview_upload.cpp" />
     <ClCompile Include="source\png_tool.cpp" />
+    <ClCompile Include="source\field_column_mapping.cpp" />
+    <ClCompile Include="source\song_info_list_control.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\targetver.h" />
@@ -25,8 +25,6 @@
     <ClInclude Include="source\mv_management_app.h" />
     <ClInclude Include="source\mv_management_dialog.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="source\my_list_ctrl.h" />
-    <ClInclude Include="source\all_song_list_dialog.h" />
     <ClInclude Include="source\splitter_dialog.h" />
     <ClInclude Include="source\my_left_listview.h" />
     <ClInclude Include="source\list_item_define.h" />
@@ -38,6 +36,8 @@
     <ClInclude Include="source\util.h" />
     <ClInclude Include="source\preview_upload.h" />
     <ClInclude Include="source\png_tool.h" />
+    <ClInclude Include="source\field_column_mapping.h" />
+    <ClInclude Include="source\song_info_list_control.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="%28resource%29">

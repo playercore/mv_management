@@ -13,7 +13,6 @@
 #include "mv_management_app.h"
 #include "search_dialog.h"
 #include "common.h"
-#include "jpeg_tool.h"
 #include "util.h"
 
 using std::wstring;
@@ -23,33 +22,6 @@ using boost::filesystem3::path;
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
-namespace {
-void LoadJPEG(CBitmap* bitmap, const wstring& jpegPath)
-{
-    assert(bitmap);
-    void* decoded = Jpeg::LoadFromJPEGFile(jpegPath);
-    if (!decoded) {
-        bitmap->LoadBitmap(IDB_BITMAP_NONE);
-        return;
-    }
-
-    unique_ptr<int8> autoRelease(reinterpret_cast<int8*>(decoded));
-    BITMAPINFOHEADER* header = reinterpret_cast<BITMAPINFOHEADER*>(decoded);
-    void* bits = NULL;
-    HBITMAP j = CreateDIBSection(NULL, reinterpret_cast<BITMAPINFO*>(header),
-                                 DIB_RGB_COLORS, &bits, NULL, 0);
-    if (!j || !bits)
-        return;
-
-    memcpy(
-        bits, header + 1,
-        (header->biWidth * header->biBitCount + 31) / 32 * 4 *
-            abs(header->biHeight));
-    bitmap->Attach(j);
-    return;
-}
-}
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
@@ -240,15 +212,10 @@ BOOL CMVManagementDialog::OnInitDialog()
 	m_tab.InsertItem(1,L"去除重复歌曲");
 
 
-    m_allSongList.Create(
-        WS_VISIBLE|WS_BORDER|WS_CHILD|LVS_REPORT|WS_VSCROLL|WS_HSCROLL|LVS_SHOWSELALWAYS|LVS_SINGLESEL,
-        tabRect, &m_tab, IDC_LIST1);
+    m_songFullList.Create(&m_tab, tabRect, IDC_LIST1);
+    //m_songFullList.MoveWindow(&tabRect);
 
-    m_allSongList.SetExtendedStyle(LVS_EX_GRIDLINES|LVS_EX_FULLROWSELECT);      //生成网格线|选择整行
-
-    m_allSongList.MoveWindow(&tabRect);
-
-    m_splitterDialog.Create(IDD_DIALOG2, &m_tab);
+    m_splitterDialog.Create(IDD_DIALOG_SPLITTER, &m_tab);
     m_splitterDialog.MoveWindow(&tabRect);
 
     if (!AfxOleInit())
@@ -315,19 +282,13 @@ BOOL CMVManagementDialog::OnInitDialog()
             _bstr_t name;
             name = p->GetName();
             CString strName =  (LPCTSTR)name;
-
-            if (strName == L"总音轨数")
-                m_allSongList.SetTrackCountCol(i);
-            else if (strName == L"文件路径")
-                m_allSongList.SetPathCol(i);                    
-                                        
-            m_allSongList.InsertColumn(i, strName, LVCFMT_LEFT , 80, i);
+            m_songFullList.InsertColumn(i, strName, LVCFMT_LEFT , 80, i);
         }
 
         updateAllSongList(m_recordset);
 
-        m_allSongList.SetItemState(0, LVIS_SELECTED|LVIS_FOCUSED, 
-            LVIS_SELECTED|LVIS_FOCUSED);
+//         m_songFullList.SetItemState(0, LVIS_SELECTED|LVIS_FOCUSED, 
+//             LVIS_SELECTED|LVIS_FOCUSED);
     }
     catch (_com_error e)
     {
@@ -410,16 +371,16 @@ void CMVManagementDialog::OnTcnSelchange(NMHDR *pNMHDR, LRESULT *pResult)
 	{
  		case 0:
 		{
-			m_allSongList.ShowWindow(SW_SHOW);
+			m_songFullList.ShowWindow(SW_SHOW);
 			m_splitterDialog.ShowWindow(SW_HIDE);
-            int index = m_allSongList.GetSelectionMark();
-            m_allSongList.SetItemState(index, LVIS_SELECTED|LVIS_FOCUSED, 
-                LVIS_SELECTED|LVIS_FOCUSED);
+//             int index = m_songFullList.GetSelectionMark();
+//             m_songFullList.SetItemState(index, LVIS_SELECTED|LVIS_FOCUSED, 
+//                 LVIS_SELECTED|LVIS_FOCUSED);
 			break;
 		}
 		case 1:
 		{
-			m_allSongList.ShowWindow(SW_HIDE);		
+			m_songFullList.ShowWindow(SW_HIDE);		
 			m_splitterDialog.ShowWindow(SW_SHOW);	
             m_splitterDialog.SelectItem();
 			break;
@@ -435,44 +396,36 @@ void CMVManagementDialog::updateAllSongList(_RecordsetPtr recordset)
     int num = fields->GetCount() - 8; //不显示最后8列
 
     int row = 0;
-    m_allSongList.DeleteAllItems();
-    m_allSongList.SetRedraw(FALSE); 
-    m_imageList.DeleteImageList();
+    m_songFullList.DeleteAllItems();
+    m_songFullList.SetRedraw(FALSE);
     DWORD begin = GetTickCount();
     while (!recordset->adoEOF)
     {
         _variant_t t = recordset->GetCollect(0L);
-        CString str = (LPWSTR)(_bstr_t)t;
+        CString songIdInText = (LPWSTR)(_bstr_t)t;
+        const int songId = static_cast<int>(t);
         t = recordset->GetCollect(2L);
         wstring md5 = static_cast<wchar_t*>(static_cast<_bstr_t>(t));
-        CBitmap bitmap;
-        LoadJPEG(&bitmap, GetMvPreviewPath() + md5 + L".jpg");
-        if (!m_imageList.m_hImageList)
-        {
-            if (!initImageList(&bitmap))
-                return;
-        }
-
-        int imageIndex = m_imageList.Add(&bitmap, RGB(0,0,0));
-        int index = m_allSongList.InsertItem(row, str, imageIndex);
-        
-        m_allSongList.SetItemData(index, row);
+        t = recordset->GetCollect(16L);
+        int index = m_songFullList.AddItem(
+            songIdInText, songId,
+            ((VT_NULL != t.vt) ? static_cast<int>(t) : 6000), md5);
         for (long i = 1;i < num; ++i)
         {
-            t =  recordset->GetCollect(i);
+            t = recordset->GetCollect(i);
 
             if (t.vt != VT_NULL)
-                str = (LPWSTR)(_bstr_t)t;
+                songIdInText = (LPWSTR)(_bstr_t)t;
             else
-                str = L"";
-            m_allSongList.SetItemText(row, i, str);
+                songIdInText = L"";
+            m_songFullList.SetItemText(row, i, songIdInText);
         }
 
-        recordset->MoveNext();   
+        recordset->MoveNext();
         row++;
     }
 
-    m_allSongList.SetRedraw(TRUE);
+    m_songFullList.SetRedraw(TRUE);
 }
 
 void CMVManagementDialog::OnClose()
@@ -494,12 +447,12 @@ void CMVManagementDialog::OnBnClickedButtonSearch()
         return;
     }
     
-    m_allSongList.DeleteAllItems();
+    m_songFullList.DeleteAllItems();
 
     updateAllSongList(m_recordset);
 
-    m_allSongList.SetItemState(0, LVIS_SELECTED|LVIS_FOCUSED, 
-        LVIS_SELECTED|LVIS_FOCUSED);
+//     m_songFullList.SetItemState(0, LVIS_SELECTED|LVIS_FOCUSED, 
+//         LVIS_SELECTED|LVIS_FOCUSED);
 
 }
 
@@ -665,13 +618,13 @@ void CMVManagementDialog::OnBnClickedButtonSubmit()
     
     UpdateData(TRUE);
 
-    m_allSongList.DeleteAllItems();
+    m_songFullList.DeleteAllItems();
 
     simpleUpdate(m_recordset);
     updateAllSongList(m_recordset);
 
-    m_allSongList.SetItemState(0, LVIS_SELECTED|LVIS_FOCUSED, 
-        LVIS_SELECTED|LVIS_FOCUSED);
+//     m_songFullList.SetItemState(0, LVIS_SELECTED|LVIS_FOCUSED, 
+//         LVIS_SELECTED|LVIS_FOCUSED);
     updateSplitterWnd(m_recordset);
 }
 
@@ -736,7 +689,6 @@ void CMVManagementDialog::getCurTime(CString& time)
     time = now.Format(L"%Y-%m-%d %H:%M:%S");
 }
 
-
 void CMVManagementDialog::OnSize(UINT nType, int cx, int cy)
 {
     CDialogEx::OnSize(nType, cx, cy);
@@ -758,7 +710,7 @@ void CMVManagementDialog::OnSize(UINT nType, int cx, int cy)
         m_tab.MoveWindow(tabRect);
     }
 
-    if (m_allSongList.m_hWnd != NULL)
+    if (m_songFullList.HasBeenCreated())
     {
         CRect tabRect;
         m_tab.GetClientRect(&tabRect);  
@@ -766,7 +718,7 @@ void CMVManagementDialog::OnSize(UINT nType, int cx, int cy)
         tabRect.bottom -= 0;
         tabRect.left += 0;  
         tabRect.right -= 2;    
-        m_allSongList.MoveWindow(tabRect);
+        m_songFullList.MoveWindow(tabRect);
     }
 
     if (m_splitterDialog.m_hWnd != NULL)
@@ -847,19 +799,4 @@ void CMVManagementDialog::simpleUpdate(_RecordsetPtr& recordset)
     {
         MessageBox(e.Description());
     }
-
-}
-
-bool CMVManagementDialog::initImageList(CBitmap* bitmap)
-{
-    if (!bitmap->GetSafeHandle())
-        return false;
-    
-    BITMAP i;
-    bitmap->GetBitmap(&i);
-    if (!m_imageList.Create(i.bmWidth, i.bmHeight, ILC_COLOR24, 0, 100))
-        return false;
-
-    m_allSongList.SetImageList(&m_imageList, LVSIL_NORMAL);
-    return true;
 }

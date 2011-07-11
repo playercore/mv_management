@@ -11,36 +11,36 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\all_song_list_dialog.cpp" />
+    <ClCompile Include="source\field_column_mapping.cpp" />
     <ClCompile Include="source\jpeg_tool.cpp" />
     <ClCompile Include="source\mv_management_app.cpp" />
     <ClCompile Include="source\mv_management_dialog.cpp" />
     <ClCompile Include="source\my_left_listview.cpp" />
-    <ClCompile Include="source\my_list_ctrl.cpp" />
     <ClCompile Include="source\my_right_listview.cpp" />
     <ClCompile Include="source\png_tool.cpp" />
     <ClCompile Include="source\preview_dialog.cpp" />
     <ClCompile Include="source\preview_upload.cpp" />
     <ClCompile Include="source\search_dialog.cpp" />
+    <ClCompile Include="source\song_info_list_control.cpp" />
     <ClCompile Include="source\splitter_dialog.cpp" />
     <ClCompile Include="source\common.cpp" />
     <ClCompile Include="source\util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource\Resource.h" />
-    <ClInclude Include="source\all_song_list_dialog.h" />
+    <ClInclude Include="source\field_column_mapping.h" />
     <ClInclude Include="source\jpeg_tool.h" />
     <ClInclude Include="source\list_item_define.h" />
     <ClInclude Include="source\mfc_predefine.h" />
     <ClInclude Include="source\mv_management_app.h" />
     <ClInclude Include="source\mv_management_dialog.h" />
     <ClInclude Include="source\my_left_listview.h" />
-    <ClInclude Include="source\my_list_ctrl.h" />
     <ClInclude Include="source\my_right_listview.h" />
     <ClInclude Include="source\png_tool.h" />
     <ClInclude Include="source\preview_dialog.h" />
     <ClInclude Include="source\preview_upload.h" />
     <ClInclude Include="source\search_dialog.h" />
+    <ClInclude Include="source\song_info_list_control.h" />
     <ClInclude Include="source\splitter_dialog.h" />
     <ClInclude Include="source\common.h" />
     <ClInclude Include="source\targetver.h" />
@@ -110,7 +110,10 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>chromium.lib;dbghelp.lib;avcodec.lib;avformat.lib;avutil.lib;swscale.lib;libjpeg.a;libcurld.lib;wldap32.lib;libpng14d.lib</AdditionalDependencies>
+      <AdditionalDependencies>uafxcwd.lib;libcmtd.lib;chromium.lib;dbghelp.lib;avcodec.lib;avformat.lib;avutil.lib;swscale.lib;libjpeg.a;libcurld.lib;wldap32.lib;libpng14d.lib</AdditionalDependencies>
+      <IgnoreAllDefaultLibraries>
+      </IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>uafxcwd.lib;libcmtd.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>

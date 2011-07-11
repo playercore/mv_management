@@ -7,7 +7,7 @@
 #include "third_party/chromium/base/thread.h"
 #include "resource/resource.h" // main symbols
 
-#include "my_list_ctrl.h"
+#include "song_info_list_control.h"
 #include "all_song_list_dialog.h"
 #include "splitter_dialog.h"
 #include "list_item_define.h"
@@ -52,12 +52,10 @@ private:
     afx_msg void OnSize(UINT nType, int cx, int cy);
     virtual BOOL PreTranslateMessage(MSG* pMsg);
     void simpleUpdate(_RecordsetPtr& recordset);
-    bool initImageList(CBitmap* bitmap);
 
 	HICON m_icon;
-	CMyListCtrl m_allSongList;
+	SongInfoListControl m_songFullList;
 	CTabCtrl m_tab;
-	CAllSongListDialog m_dialog1;
     _ConnectionPtr m_connection;//connection   object's   pointer     
     _RecordsetPtr m_recordset;
       
@@ -67,6 +65,5 @@ private:
     int m_filterType;
     int m_page; //0：所有歌曲 ，1：去除重复歌曲
     CString m_ip;
-    CString m_curSelectedId;  
-    CImageList m_imageList;
+    CString m_curSelectedId;
 };
