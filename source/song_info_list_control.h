@@ -34,6 +34,7 @@ private:
     void UpdateMapping();
     int GetItemIndexBySongId(int songId);
     int GetPreviewTimeBySongId(int songId);
+    void GetSongInfoBySongId(int songId, SongInfo* info);
     void SetPreviewTimeToBeBySongId(int songId, int previewTime);
     void ConfirmPreviewTime(int songId);
 

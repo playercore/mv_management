@@ -132,6 +132,7 @@ bool InitImageList(CImageList* imageList, CBitmap* bitmap)
 struct SongInfo
 {
     int ItemIndex;
+    int ImageIndex;
     int64 PreviewTime;
     int64 PreviewTimeToBe;
 };
@@ -378,12 +379,11 @@ void CMyListCtrl::OnNMDblclk(NMHDR* desc, LRESULT* result)
 LRESULT CMyListCtrl::OnUploadDone(WPARAM songId, LPARAM result)
 {
     control_->ConfirmPreviewTime(songId);
-    const int itemIndex = control_->GetItemIndexBySongId(songId);
-    if (itemIndex < 0)
-        return 0;
+    SongInfo info = {0};
+    control_->GetSongInfoBySongId(songId, &info);
 
     wstring md5 = control_->GetItemText(
-        itemIndex,
+        info.ItemIndex,
         FieldColumnMapping::get()->GetColumnIndex(
             FieldColumnMapping::kSongFullListMd5));
 
@@ -452,9 +452,9 @@ LRESULT CMyListCtrl::OnUploadDone(WPARAM songId, LPARAM result)
 
         CImageList* imageList = GetImageList(ILS_NORMAL);
         if (imageList) {
-                if (imageList->Replace(itemIndex, &preview, NULL)) {
+            if (imageList->Replace(info.ImageIndex, &preview, NULL)) {
                 preview.Detach();
-                RedrawItems(itemIndex, itemIndex);
+                RedrawItems(info.ItemIndex, info.ItemIndex);
             }
         }
 
@@ -578,7 +578,7 @@ int SongInfoListControl::AddItem(const wchar_t* text, int songId,
     impl_->SetItemData(itemIndex, songId);
 
     // Update song ID-item mapping.
-    SongInfo s = { itemIndex, previewTime, previewTime };
+    SongInfo s = { itemIndex, imageIndex, previewTime, previewTime };
     songIdToItem_.insert(pair<int, SongInfo>(songId, s));
     return r;
 }
@@ -664,6 +664,15 @@ int SongInfoListControl::GetPreviewTimeBySongId(int songId)
     assert(songIdToItem_.end() != iter);
     return (songIdToItem_.end() != iter) ?
         static_cast<int>(iter->second.PreviewTime) : 0;
+}
+
+void SongInfoListControl::GetSongInfoBySongId(int songId, SongInfo* info)
+{
+    assert(info);
+    auto iter = songIdToItem_.find(songId);
+    assert(songIdToItem_.end() != iter);
+    if (songIdToItem_.end() != iter)
+        *info = iter->second;
 }
 
 void SongInfoListControl::SetPreviewTimeToBeBySongId(int songId,
