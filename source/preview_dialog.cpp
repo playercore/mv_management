@@ -246,11 +246,11 @@ void PreviewDialog::Open()
     // Initialize RGB format frame.
     const int previewWidth = codecCont_->width / 6;
     const int previewHeight = codecCont_->height / 6;
-    const int bufSize = avpicture_get_size(PIX_FMT_RGB24, previewWidth,
+    const int bufSize = avpicture_get_size(PIX_FMT_BGR24, previewWidth,
                                            previewHeight);
     avpicture_fill(reinterpret_cast<AVPicture*>(frameRGB_.get()),
                    reinterpret_cast<uint8_t*>(av_malloc(bufSize)),
-                   PIX_FMT_RGB24, previewWidth, previewHeight);
+                   PIX_FMT_BGR24, previewWidth, previewHeight);
     frameRGB_->width = previewWidth;
     frameRGB_->height = previewHeight;
 }
@@ -290,7 +290,7 @@ void PreviewDialog::GeneratePreview(int64 time)
                                            codecCont_->height,
                                            codecCont_->pix_fmt,
                                            frameRGB_->width,
-                                           frameRGB_->height, PIX_FMT_RGB24,
+                                           frameRGB_->height, PIX_FMT_BGR24,
                                            SWS_BICUBIC, NULL, NULL, NULL);
     if (!scaleCont)
         return;

@@ -57,6 +57,9 @@ void Jpeg::SaveToJPEGFile(const path& jpegPath, AVFrame* frame)
             JSAMPROW data[1];
             data[0] = reinterpret_cast<JSAMPROW>(
                 frame->data[0] + comp.next_scanline * frame->linesize[0]);
+            for (int x = 0; x < static_cast<int>(comp.image_width); ++x)
+                std::swap(data[0][x * 3], data[0][x * 3 + 2]);
+
             jpeg_write_scanlines(&comp, data, 1);
         }
 
@@ -105,6 +108,8 @@ void* Jpeg::LoadFromJPEGFile(const path& jpegPath)
             data[0] = reinterpret_cast<JSAMPROW>(
                 dataStart + decomp.output_scanline * lineSize);
             jpeg_read_scanlines(&decomp, data, 1);
+            for (int x = 0; x < static_cast<int>(decomp.image_width); ++x)
+                std::swap(data[0][x * 3], data[0][x * 3 + 2]);
         }
 
         jpeg_finish_decompress(&decomp);
