@@ -63,4 +63,5 @@ private:
     int m_page; //0：所有歌曲 ，1：去除重复歌曲
     CString m_ip;
     CString m_curSelectedId;
+    CStatic guide_;
 };

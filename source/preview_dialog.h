@@ -42,7 +42,7 @@ public:
 
     PreviewDialog(CWnd* parent, const boost::filesystem3::path& mvPath,
                   const boost::filesystem3::path& previewPath,
-                  int64 initialPreviewTime);
+                  int64 initialPreviewTime, const std::wstring& songName);
     virtual ~PreviewDialog();
 
     int64 GetPreivewTime();
@@ -64,6 +64,7 @@ private:
 
     boost::filesystem3::path mvPath_;
     boost::filesystem3::path previewPath_;
+    std::wstring songName_;
     CSliderCtrl timeSlider_;
     PictureControl preview_;
     std::unique_ptr<AVFormatContext, void (*)(AVFormatContext*)> media_;

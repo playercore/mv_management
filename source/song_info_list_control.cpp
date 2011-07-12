@@ -156,12 +156,15 @@ protected:
     afx_msg LRESULT OnUploadDone(WPARAM songId, LPARAM result);
 
 private:
+    friend class SongInfoListControl;
+
     static int __stdcall CompareFunction(LPARAM lParam1, LPARAM lParam2, 
                                          LPARAM lParamData);
 
     void Sort(int column, bool isAscending);
     void PlayMV(int row);
     void PreviewMV(int item);
+    bool PrintMark(CBitmap* target, bool succeeded);
 
     SongInfoListControl* control_;
     bool isAscending_;
@@ -297,8 +300,8 @@ int CMyListCtrl::CompareFunction(LPARAM lParam1, LPARAM lParam2,
     bool r;
     if (FieldColumnMapping::get()->GetColumnIndex(
         FieldColumnMapping::kSongFullListSongId) == listCtrl->lastSortColumn_) {
-        int id1 = lexical_cast<int>(text1);
-        int id2 = lexical_cast<int>(text2);
+        int id1 = lexical_cast<int>(text1.c_str());
+        int id2 = lexical_cast<int>(text2.c_str());
         r = (id1 < id2);
     } else {
         r = less<wstring>()(text1, text2);
@@ -369,20 +372,25 @@ void CMyListCtrl::OnNMDblclk(NMHDR* desc, LRESULT* result)
         return;
     }
 
-    if (GetStyle() & LVS_REPORT)
-        PlayMV(itemActivate->iItem);
-    else
-        PreviewMV(itemActivate->iItem);
+    if (itemActivate->iItem >= 0) {
+        if (GetStyle() & LVS_REPORT)
+            PlayMV(itemActivate->iItem);
+        else
+            PreviewMV(itemActivate->iItem);
+    }
 
     *result = 0;
 }
 
 LRESULT CMyListCtrl::OnUploadDone(WPARAM songId, LPARAM result)
 {
-    CSQLControl::get()->UpdatePreviewInfo(songId, result);
     control_->ConfirmPreviewTime(songId);
     SongInfo info = {0};
     control_->GetSongInfoBySongId(songId, &info);
+
+    const bool updateSucceeded =
+        CSQLControl::get()->UpdatePreviewInfo(
+            songId, static_cast<int>(info.PreviewTime));
 
     wstring md5 = control_->GetItemText(
         info.ItemIndex,
@@ -393,64 +401,8 @@ LRESULT CMyListCtrl::OnUploadDone(WPARAM songId, LPARAM result)
     LoadJPEG(&preview, GetMvPreviewPath() + md5 + L".jpg");
 
     do {
-        CBitmap* mark;
-        CBitmap* mask;
-        if (!result) {
-            if (!uploadDone_.GetSafeHandle())
-                LoadNotificationImage(IDB_PNG_UPLOAD_DONE, &uploadDone_,
-                                      &uploadDoneMask_);
-
-            if (!uploadDone_.GetSafeHandle())
-                break;
-
-            mark = &uploadDone_;
-            mask = &uploadDoneMask_;
-        } else {
-            if (!uploadFailed_.GetSafeHandle())
-                LoadNotificationImage(IDB_PNG_UPLOAD_FAILED, &uploadFailed_,
-                                      &uploadFailedMask_);
-
-            if (!uploadFailed_.GetSafeHandle())
-                break;
-
-            mark = &uploadFailed_;
-            mask = &uploadFailedMask_;
-        }
-
-        BITMAP previewInfo;
-        preview.GetBitmap(&previewInfo);
-        const int previewWidth = previewInfo.bmWidth;
-        const int previewHeight = previewInfo.bmHeight;
-
-        BITMAP markInfo;
-        if (sizeof(markInfo) != mark->GetBitmap(&markInfo))
+        if (!PrintMark(&preview, !result && updateSucceeded))
             break;
-
-        const int markWidth = markInfo.bmWidth;
-        const int markHeight = markInfo.bmHeight;
-
-        CDC* dc = GetDC();
-        CDC previewDc;
-        previewDc.CreateCompatibleDC(dc);
-
-        CDC markDc;
-        markDc.CreateCompatibleDC(dc);
-
-        CDC maskDc;
-        maskDc.CreateCompatibleDC(dc);
-
-        CGdiObject* o1 = previewDc.SelectObject(&preview);
-        CGdiObject* o2 = markDc.SelectObject(mark);
-        CGdiObject* o3 = maskDc.SelectObject(mask);
-
-        previewDc.MaskBlt(previewWidth - markWidth - 5,
-                          previewHeight - markHeight - 5, markWidth,
-                          markHeight, &markDc, 0, 0, *mask, 0, 0,
-                          MAKEROP4(SRCPAINT, SRCCOPY));
-        maskDc.SelectObject(o3);
-        markDc.SelectObject(o2);
-        previewDc.SelectObject(o1);
-        ReleaseDC(dc);
 
         CImageList* imageList = GetImageList(ILS_NORMAL);
         if (imageList) {
@@ -507,13 +459,23 @@ void CMyListCtrl::PlayMV(int row)
 
 void CMyListCtrl::PreviewMV(int item)
 {
-    path mvPath(control_->GetItemText(item, 1));
-    wstring md5 = control_->GetItemText(item, 2);
+    path mvPath(control_->GetItemText(
+        item,
+        FieldColumnMapping::get()->GetColumnIndex(
+            FieldColumnMapping::kSongFullListFilePath)));
+    wstring md5 = control_->GetItemText(
+        item,
+        FieldColumnMapping::get()->GetColumnIndex(
+            FieldColumnMapping::kSongFullListMd5));
     path previewPath(GetMvPreviewPath() + md5 + L".jpg");
     const int songId = GetItemData(item);
     const int previewTime = control_->GetPreviewTimeBySongId(songId);
+    wstring songName = control_->GetItemText(
+        item,
+        FieldColumnMapping::get()->GetColumnIndex(
+            FieldColumnMapping::kSongFullListEditorRename));
 
-    PreviewDialog dialog(this, mvPath, previewPath, previewTime);
+    PreviewDialog dialog(this, mvPath, previewPath, previewTime, songName);
     if (IDOK == dialog.DoModal()) {
         std::shared_ptr<MyUploadCallback> callback(
             std::make_shared<MyUploadCallback>(this));
@@ -523,6 +485,70 @@ void CMyListCtrl::PreviewMV(int item)
                                              static_cast<int>(previewTime));
         PreviewUpload::Upload(previewPath, callback, songId);
     }
+}
+
+bool CMyListCtrl::PrintMark(CBitmap* target, bool succeeded)
+{
+    assert(target);
+    CBitmap* mark;
+    CBitmap* mask;
+    if (succeeded) {
+        if (!uploadDone_.GetSafeHandle())
+            LoadNotificationImage(IDB_PNG_UPLOAD_DONE, &uploadDone_,
+                                  &uploadDoneMask_);
+
+        if (!uploadDone_.GetSafeHandle())
+            return false;
+
+        mark = &uploadDone_;
+        mask = &uploadDoneMask_;
+    } else {
+        if (!uploadFailed_.GetSafeHandle())
+            LoadNotificationImage(IDB_PNG_UPLOAD_FAILED, &uploadFailed_,
+                                  &uploadFailedMask_);
+
+        if (!uploadFailed_.GetSafeHandle())
+            return false;
+
+        mark = &uploadFailed_;
+        mask = &uploadFailedMask_;
+    }
+
+    BITMAP previewInfo;
+    target->GetBitmap(&previewInfo);
+    const int previewWidth = previewInfo.bmWidth;
+    const int previewHeight = previewInfo.bmHeight;
+
+    BITMAP markInfo;
+    if (sizeof(markInfo) != mark->GetBitmap(&markInfo))
+        return false;
+
+    const int markWidth = markInfo.bmWidth;
+    const int markHeight = markInfo.bmHeight;
+
+    CDC* dc = GetDC();
+    CDC previewDc;
+    previewDc.CreateCompatibleDC(dc);
+
+    CDC markDc;
+    markDc.CreateCompatibleDC(dc);
+
+    CDC maskDc;
+    maskDc.CreateCompatibleDC(dc);
+
+    CGdiObject* o1 = previewDc.SelectObject(target);
+    CGdiObject* o2 = markDc.SelectObject(mark);
+    CGdiObject* o3 = maskDc.SelectObject(mask);
+
+    previewDc.MaskBlt(previewWidth - markWidth - 5,
+                      previewHeight - markHeight - 5, markWidth,
+                      markHeight, &markDc, 0, 0, *mask, 0, 0,
+                      MAKEROP4(SRCPAINT, SRCCOPY));
+    maskDc.SelectObject(o3);
+    markDc.SelectObject(o2);
+    previewDc.SelectObject(o1);
+    ReleaseDC(dc);
+    return true;
 }
 
 //------------------------------------------------------------------------------
@@ -561,6 +587,9 @@ int SongInfoListControl::AddItem(const wchar_t* text, int songId,
     // Load image.
     CBitmap bitmap;
     LoadJPEG(&bitmap, GetMvPreviewPath() + md5 + L".jpg");
+    if (previewTime >= 0)
+        impl_->PrintMark(&bitmap, true);
+
     int imageIndex = 0;
     CImageList* imageList = impl_->GetImageList(LVSIL_NORMAL);
     if (!imageList) {
@@ -613,7 +642,7 @@ bool SongInfoListControl::SetItemText(int item, int subItem,
 
 bool SongInfoListControl::DeleteAllItems()
 {
-    CImageList* imageList = impl_->GetImageList(ILS_NORMAL);
+    CImageList* imageList = impl_->SetImageList(NULL, ILS_NORMAL);
     if (imageList)
         imageList->DeleteImageList();
 

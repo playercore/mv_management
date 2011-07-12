@@ -2,7 +2,6 @@
 #define _FIELD_COLUMN_MAPPING_H_
 
 #include "third_party/chromium/base/singleton.h"
-#import "msado15.dll" no_namespace rename("EOF","adoEOF") rename("BOF","adoBOF")
 
 class FieldColumnMapping : public Singleton<FieldColumnMapping>
 {
@@ -12,6 +11,7 @@ public:
         kSongFullListSongId,
         kSongFullListFilePath,
         kSongFullListMd5,
+        kSongFullListEditorRename,
         kSongFullListNumOfTracks,
         kRightViewFilePath,
     };
