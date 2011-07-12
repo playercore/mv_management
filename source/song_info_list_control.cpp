@@ -14,6 +14,7 @@
 #include "png_tool.h"
 #include "field_column_mapping.h"
 #include "jpeg_tool.h"
+#include "sql_control.h"
 
 using std::wstring;
 using std::wstringstream;
@@ -378,6 +379,7 @@ void CMyListCtrl::OnNMDblclk(NMHDR* desc, LRESULT* result)
 
 LRESULT CMyListCtrl::OnUploadDone(WPARAM songId, LPARAM result)
 {
+    CSQLControl::get()->UpdatePreviewInfo(songId, result);
     control_->ConfirmPreviewTime(songId);
     SongInfo info = {0};
     control_->GetSongInfoBySongId(songId, &info);

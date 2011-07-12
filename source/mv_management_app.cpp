@@ -57,6 +57,9 @@ BOOL CMVManagementApp::InitInstance()
 		return FALSE;
 	}
 
+    if (!AfxOleInit())
+        MessageBox(NULL, L"OLE初始化失败", L"", MB_OK);
+
 	AfxEnableControlContainer();
 // 
 // 	// 创建 shell 管理器，以防对话框包含

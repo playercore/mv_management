@@ -4,6 +4,7 @@
 #include <string>
 
 std::string WideCharToMultiByte(const std::wstring& from);
+std::wstring Utf8ToWideChar(const std::string& from);
 wchar_t* GetMvPreviewPath();
 
 template <typename T, typename F>

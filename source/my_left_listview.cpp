@@ -6,6 +6,9 @@
 #include "common.h"
 using std::wstring;
 
+extern bool IsNumber(CString str);
+extern int NumberCompare(CString str1, CString str2);
+
 IMPLEMENT_DYNCREATE(CMyLeftListView, CListView)
     
 CMyLeftListView::CMyLeftListView()

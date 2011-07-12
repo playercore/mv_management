@@ -24,6 +24,7 @@
     <ClCompile Include="source\song_info_list_control.cpp" />
     <ClCompile Include="source\splitter_dialog.cpp" />
     <ClCompile Include="source\common.cpp" />
+    <ClCompile Include="source\sql_control.cpp" />
     <ClCompile Include="source\util.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -43,6 +44,7 @@
     <ClInclude Include="source\song_info_list_control.h" />
     <ClInclude Include="source\splitter_dialog.h" />
     <ClInclude Include="source\common.h" />
+    <ClInclude Include="source\sql_control.h" />
     <ClInclude Include="source\targetver.h" />
     <ClInclude Include="source\util.h" />
     <ClInclude Include="stdafx.h" />

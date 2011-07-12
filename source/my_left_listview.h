@@ -21,6 +21,7 @@ private:
         LPARAM lParamData);
     afx_msg void OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult); 
 
+
     bool m_isAscending;
     int m_sortColumn;
     int m_pathCol;

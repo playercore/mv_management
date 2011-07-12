@@ -8,10 +8,10 @@
 #include <boost/filesystem.hpp>
 #include "afxdialogex.h"
 #include "afxdb.h"
-#include <winsock2.h>
 
 #include "mv_management_app.h"
 #include "search_dialog.h"
+#include "sql_control.h"
 #include "common.h"
 #include "util.h"
 
@@ -127,7 +127,7 @@ BOOL CMVManagementDialog::OnInitDialog()
     	
 	// TODO: 在此添加额外的初始化代码
     // 获取本机IP
-    getLocalIP();
+    m_ip = GetLocalIP().c_str();
 
 	CButton* trackButton = reinterpret_cast<CButton*>(GetDlgItem(IDC_RADIO_0));
 	trackButton->SetCheck(1);
@@ -175,6 +175,7 @@ BOOL CMVManagementDialog::OnInitDialog()
     len = GetPrivateProfileString(L"ID", L"END", L"0", buf, 32767, 
                                   path.c_str());
     m_id_to = buf;
+    UpdateData(FALSE);
 
 	buf[32767];
 	len = GetPrivateProfileString(L"type", NULL, L"", buf, 32767, 
@@ -217,61 +218,14 @@ BOOL CMVManagementDialog::OnInitDialog()
 
     m_splitterDialog.Create(IDD_DIALOG_SPLITTER, &m_tab);
     m_splitterDialog.MoveWindow(&tabRect);
-
-    if (!AfxOleInit())
-        MessageBox(L"OLE初始化失败");
-    try
-    {   
-        m_connection.CreateInstance(__uuidof(Connection));
-
-        wchar_t buf1[32767];
-        int len1 = GetPrivateProfileString(L"databaseSetup", L"ServerIP", L"0", 
-                                           buf1, 32767, path.c_str());
-        CString server = buf1;
-        len1 = GetPrivateProfileString(L"databaseSetup", L"UserName", L"0", 
-                                           buf1, 32767, path.c_str());
-        CString userName = buf1;
-
-        len1 = GetPrivateProfileString(L"databaseSetup", L"Password", L"0", 
-            buf1, 32767, path.c_str());
-        CString password = buf1;
-
-        len1 = GetPrivateProfileString(L"databaseSetup", L"DatabaseName", L"0", 
-            buf1, 32767, path.c_str());
-        CString databaseName = buf1;
-
-        CString strSQL = L"Driver={SQL Server};Server=";
-        strSQL += server;
-        strSQL += L";Database=";
-        strSQL += databaseName;
-        strSQL += L";UID=";
-        strSQL += userName;
-        strSQL += L";PWD=";
-        strSQL += password;
+  
+    _RecordsetPtr recordset;
+    simpleUpdate(recordset);
         
-        m_connection->Open((_bstr_t)strSQL, "","",adConnectUnspecified);
-    }
-    catch (_com_error e)
+    if (recordset != NULL)
     {
-        MessageBox(e.Description());
-    }
-
-    try
-    {  
-        CString query = GetBaseQuery();
-        query += L" and 歌曲编号 between " + m_id_from + " and " + m_id_to;
-        if (m_filterType != 3)
-        {   
-            CString flag;
-            flag.Format(L"%d", m_filterType);
-            query += L" and 标识=";
-            query += flag;
-        }
-
-        m_recordset = 
-            m_connection->Execute((_bstr_t)query, NULL,adConnectUnspecified);
         Fields* fields;
-        m_recordset->get_Fields(&fields);
+        recordset->get_Fields(&fields);
         int num = fields->GetCount() - 8; //不显示最后8列
 
         for (long i = 0;i < num; ++i)
@@ -285,18 +239,11 @@ BOOL CMVManagementDialog::OnInitDialog()
             m_songFullList.InsertColumn(i, strName, LVCFMT_LEFT , 80, i);
         }
 
-        updateAllSongList(m_recordset);
-
-//         m_songFullList.SetItemState(0, LVIS_SELECTED|LVIS_FOCUSED, 
-//             LVIS_SELECTED|LVIS_FOCUSED);
+        updateAllSongList(recordset);
     }
-    catch (_com_error e)
-    {
-        MessageBox(e.Description());
-    }
-    
-    m_splitterDialog.SetConnectionPtr(m_connection);
-    UpdateData(FALSE);
+        
+    //m_splitterDialog.SetConnectionPtr(m_connection);
+  
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -430,7 +377,6 @@ void CMVManagementDialog::updateAllSongList(_RecordsetPtr recordset)
 
 void CMVManagementDialog::OnClose()
 {
-    m_connection->Close(); 
     CDialogEx::OnClose();
 }
 
@@ -438,22 +384,18 @@ void CMVManagementDialog::OnClose()
 void CMVManagementDialog::OnBnClickedButtonSearch()
 {
     // TODO: 在此添加控件通知处理程序代码
-    UpdateData(TRUE);
-    simpleUpdate(m_recordset);
+    _RecordsetPtr recordSet;
+    simpleUpdate(recordSet);
 
     if (m_page == 1)
     {
-        updateSplitterWnd(m_recordset);
+        updateSplitterWnd(recordSet);
         return;
     }
     
     m_songFullList.DeleteAllItems();
 
-    updateAllSongList(m_recordset);
-
-//     m_songFullList.SetItemState(0, LVIS_SELECTED|LVIS_FOCUSED, 
-//         LVIS_SELECTED|LVIS_FOCUSED);
-
+    updateAllSongList(recordSet);
 }
 
 LRESULT CMVManagementDialog::updateListSel(WPARAM waram, LPARAM param)
@@ -607,25 +549,14 @@ void CMVManagementDialog::OnBnClickedButtonSubmit()
     query += L"',歌曲状态 = '已审阅' WHERE 歌曲编号 = ";
     query += m_curSelectedId;
     
-    try
-    {
-        m_connection->Execute((_bstr_t)query, NULL, adConnectUnspecified);
-    }
-    catch (_com_error e)
-    {
-        MessageBox(e.Description());
-    }
+    CSQLControl::get()->UpdateByString((LPTSTR)(LPCTSTR)query);
     
-    UpdateData(TRUE);
-
     m_songFullList.DeleteAllItems();
 
-    simpleUpdate(m_recordset);
-    updateAllSongList(m_recordset);
-
-//     m_songFullList.SetItemState(0, LVIS_SELECTED|LVIS_FOCUSED, 
-//         LVIS_SELECTED|LVIS_FOCUSED);
-    updateSplitterWnd(m_recordset);
+    _RecordsetPtr recordSet;
+    simpleUpdate(recordSet);
+    updateAllSongList(recordSet);
+    updateSplitterWnd(recordSet);
 }
 
 
@@ -648,39 +579,6 @@ LRESULT CMVManagementDialog::updateRightListSel(WPARAM waram, LPARAM param)
 {
     GetDlgItem(IDC_EDIT_NEW_HASH)->SetWindowText((wchar_t*)waram);
     return 0;
-}
-
-void CMVManagementDialog::getLocalIP()
-{
-    WORD wVersionRequested;  
-
-    wVersionRequested = MAKEWORD(1, 1);//版本号1.1
-
-    WSADATA  wsaData;
-    //1.加载套接字库 
-    int err = WSAStartup(wVersionRequested, &wsaData);
-    if (err != 0)
-        return;
-
-    //判断是否我们请求的winsocket版本，如果不是
-    //则调用WSACleanup终止winsocket的使用并返回            
-    if (LOBYTE(wsaData.wVersion) != 1 || HIBYTE(wsaData.wVersion) != 1) 
-    {
-            WSACleanup();
-            return; 
-    }
-
-    char name[255];  
-    PHOSTENT hostinfo;  
-    if(gethostname(name, sizeof(name)) == 0)  
-    {  
-        if((hostinfo = gethostbyname(name)) != NULL)  
-        {  
-            m_ip = inet_ntoa(*(struct in_addr*)*hostinfo->h_addr_list);  
-        }  
-    }  
-
-    WSACleanup();  
 }
 
 void CMVManagementDialog::getCurTime(CString& time)
@@ -749,29 +647,22 @@ BOOL CMVManagementDialog::PreTranslateMessage(MSG* pMsg)
                     if (dlg.DoModal() == IDOK)
                     {
                         CString query = dlg.GetQuery();
-                        try
-                        {              
-                            m_recordset = m_connection->Execute(
-                                (_bstr_t)query, NULL,adConnectUnspecified);
-                        }
-                        catch (_com_error e)
-                        {
-                            MessageBox(e.Description());
-                            return FALSE;
-                        }
 
+                        _RecordsetPtr recordSet = 
+                            CSQLControl::get()->SelectByString(
+                                (LPTSTR)(LPCTSTR)query);
+
+                        if (!recordSet)
+                            return FALSE;
 
                         if (m_page == 0)
-                            updateAllSongList(m_recordset);
+                            updateAllSongList(recordSet);
                         else if (m_page == 1)
-                            updateSplitterWnd(m_recordset);                      
+                            updateSplitterWnd(recordSet);                      
                     }
                     return TRUE;
                 }           
             }
-              
-            
-
         }
     }
 
@@ -780,23 +671,12 @@ BOOL CMVManagementDialog::PreTranslateMessage(MSG* pMsg)
 
 void CMVManagementDialog::simpleUpdate(_RecordsetPtr& recordset)
 {
+    UpdateData(TRUE);
     CString query = GetBaseQuery();
-    query += L" and 歌曲编号 between " + m_id_from + " and " + m_id_to;
-    if (m_filterType != 3)
-    {   
-        CString flag;
-        flag.Format(L"%d", m_filterType);
-        query += L" and 标识=";
-        query += flag;
-    }
+    int idFrom = _wtoi((LPTSTR)(LPCTSTR)m_id_from);
+    int idTo = _wtoi((LPTSTR)(LPCTSTR)m_id_to);
+    m_filterType = 
+        ((CComboBox*)GetDlgItem(IDC_COMBO_FILTER_CONDITION))->GetCurSel();
 
-    try
-    {   
-        recordset = m_connection->Execute((_bstr_t)query, NULL, 
-                                          adConnectUnspecified);
-    }
-    catch (_com_error e)
-    {
-        MessageBox(e.Description());
-    }
+    recordset = CSQLControl::get()->BaseSelect(idFrom, idTo, m_filterType);
 }

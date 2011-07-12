@@ -47,7 +47,6 @@ private:
     afx_msg void OnCbnSelchangeComboFilterCondition();
     void updateSplitterWnd(_RecordsetPtr recordset);
     afx_msg LRESULT updateRightListSel(WPARAM waram, LPARAM param);
-    void getLocalIP();
     void getCurTime(CString& time);
     afx_msg void OnSize(UINT nType, int cx, int cy);
     virtual BOOL PreTranslateMessage(MSG* pMsg);
@@ -56,9 +55,7 @@ private:
 	HICON m_icon;
 	SongInfoListControl m_songFullList;
 	CTabCtrl m_tab;
-    _ConnectionPtr m_connection;//connection   object's   pointer     
-    _RecordsetPtr m_recordset;
-      
+     
     CString m_id_from;
     CString m_id_to;
     CSplitterDialog m_splitterDialog;
