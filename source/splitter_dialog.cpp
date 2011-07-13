@@ -7,6 +7,7 @@
 #include "list_item_define.h"
 #include "my_right_listview.h"
 #include "common.h"
+#include "sql_control.h"
 
 // CSplitterDialog 对话框
 
@@ -14,14 +15,6 @@ IMPLEMENT_DYNAMIC(CSplitterDialog, CDialog)
 
 CSplitterDialog::CSplitterDialog(CWnd* pParent /*=NULL*/)
 	: CDialog(CSplitterDialog::IDD, pParent)
-    , m_connection(NULL)
-{
-
-}
-
-CSplitterDialog::CSplitterDialog(_ConnectionPtr connect, CWnd* pParent /*= NULL*/)
-    : CDialog(CSplitterDialog::IDD, pParent)
-    , m_connection(connect)
 {
 
 }
@@ -62,9 +55,26 @@ BOOL CSplitterDialog::OnInitDialog()
     rightListCtrl.ModifyStyle(0, LVS_REPORT|WS_VSCROLL|WS_HSCROLL|LVS_SHOWSELALWAYS|LVS_SINGLESEL);
     rightListCtrl.SetExtendedStyle(LVS_EX_GRIDLINES|LVS_EX_FULLROWSELECT); 
 
+    _RecordsetPtr recordset = CSQLControl::get()->BaseSelect();
+    Fields* fields;
+    recordset->get_Fields(&fields);
+    int num = fields->GetCount() - 8; //不显示最后8列
+
+    for (long i = 0;i < num; ++i)
+    {
+        _variant_t index(i);    
+        Field* field = NULL;
+        FieldPtr p = fields->GetItem(index);
+        _bstr_t name;
+        name = p->GetName();
+        CString strName =  (LPCTSTR)name;
+
+        leftListCtrl.InsertColumn(i, strName, LVCFMT_LEFT , 80, i);
+        rightListCtrl.InsertColumn(i, strName, LVCFMT_LEFT , 80, i);
+    }
+
     // TODO:  在此添加额外的初始化
     return TRUE;  // return TRUE unless you set the focus to a control
-    // 异常: OCX 属性页应返回 FALSE
 }
 
 int CSplitterDialog::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -109,51 +119,6 @@ void CSplitterDialog::OnSize(UINT nType, int cx, int cy)
     // TODO: 在此处添加消息处理程序代码
 }
 
-void CSplitterDialog::SetConnectionPtr(_ConnectionPtr connection)
-{
-    m_connection = connection;
-    CString query = GetBaseQuery();
-    _RecordsetPtr recordset;
-    try
-    {  
-        recordset = m_connection->Execute((_bstr_t)query,
-            NULL, adConnectUnspecified);
-    }
-    catch (_com_error e)
-    {
-        MessageBox(e.Description());
-        return;
-    }
-  
-    Fields* fields;
-    recordset->get_Fields(&fields);
-    int num = fields->GetCount() - 8; //不显示最后8列
-
-    CMyLeftListView* leftListView = (CMyLeftListView*)m_wndSplitter.GetPane(0,0);
-    CListCtrl& leftListCtrl = leftListView->GetListCtrl();
-
-    CMyRightListView* rightListView = (CMyRightListView*)m_wndSplitter.GetPane(0,1);
-    CListCtrl& rightListCtrl = rightListView->GetListCtrl();
-
-    for (long i = 0;i < num; ++i)
-    {
-        _variant_t index(i);    
-        Field* field = NULL;
-        FieldPtr p = fields->GetItem(index);
-        _bstr_t name;
-        name = p->GetName();
-        CString strName =  (LPCTSTR)name;
-
-        if (strName == L"文件路径")
-        {
-            leftListView->SetPathCol(i);
-            rightListView->SetPathCol(i);
-        }
-        leftListCtrl.InsertColumn(i, strName, LVCFMT_LEFT , 80, i);
-        rightListCtrl.InsertColumn(i, strName, LVCFMT_LEFT , 80, i);
-    }
-}
-
 void CSplitterDialog::Search(_RecordsetPtr recordset)
 {
     Fields* fields;
@@ -196,21 +161,11 @@ void CSplitterDialog::Search(_RecordsetPtr recordset)
 LRESULT CSplitterDialog::updateLeftListSel(WPARAM waram, LPARAM param)
 {
     TLeftListItem* leftItem = (TLeftListItem*)waram;
-    CString query = GetBaseQuery();
-
-    query += L" AND 编辑重命名 LIKE '%" + leftItem->Name + L"%'";
-    query += L" AND 旧哈希值 <> '" + leftItem->OldHash + L"'";
     _RecordsetPtr recordset;
-    try
-    {
-        recordset = m_connection->Execute(
-            (_bstr_t)query, NULL, adConnectUnspecified);
-    }
-    catch (_com_error e)
-    {
-        MessageBox(e.Description());
+    recordset = CSQLControl::get()->SelectByLeftListView(
+        (LPTSTR)(LPCTSTR)leftItem->Name, (LPTSTR)(LPCTSTR)leftItem->OldHash);
+    if (!recordset)
         return 0;
-    }
 
     Fields* fields;
     recordset->get_Fields(&fields);

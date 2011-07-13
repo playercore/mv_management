@@ -7,7 +7,6 @@ class CMyRightListView : public CListView
 public:
     CMyRightListView();
     virtual ~CMyRightListView();
-    void SetPathCol(int col);
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -23,5 +22,4 @@ private:
 
     bool m_isAscending;
     int m_sortColumn;
-    int m_pathCol;
 };

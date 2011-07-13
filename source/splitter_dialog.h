@@ -16,11 +16,9 @@ class CSplitterDialog : public CDialog
 public:
 	enum { IDD = IDD_DIALOG_SPLITTER };
 	CSplitterDialog(CWnd* pParent = NULL);   // 标准构造函数
-    CSplitterDialog(_ConnectionPtr connect, CWnd* pParent = NULL);
 	virtual ~CSplitterDialog();
     afx_msg void OnSize(UINT nType, int cx, int cy);
    virtual BOOL OnInitDialog();
-   void SetConnectionPtr(_ConnectionPtr connection);
    void Search(_RecordsetPtr recordset);
    void SelectItem();
 
@@ -37,5 +35,4 @@ private:
     DECLARE_DYNAMIC(CSplitterDialog)
     CSplitterWnd m_wndSplitter;
     CFrameWnd* m_pMyFrame;
-    _ConnectionPtr m_connection;
 };

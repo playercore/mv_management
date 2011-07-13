@@ -205,3 +205,30 @@ bool CSQLControl::UpdatePreviewInfo(int id, int previewTime)
     }
 }
 
+_RecordsetPtr CSQLControl::SelectByLeftListView(wchar_t* name, wchar_t* oldHash)
+{
+    wstring query = L"SELECT 歌曲编号,文件路径,旧哈希值,编辑重命名,是否有交错,"
+        L"歌曲状态,备注,原唱音轨,歌曲类型,新哈希值,总音轨数,画质级别,"
+        L"客户端ip地址,提交时间,图片生成ip地址,图片编号,截图时间,图片备注,"   
+        L"图片上传时间,图片路径 FROM CHECKED_ENCODE_FILE_INFO WHERE 1 = 1";
+
+    query += L" AND 编辑重命名 LIKE '%";
+    query += name;
+    query += L"%'";
+    query += L" AND 旧哈希值 <> '";
+    query += oldHash;
+    query += L"'";
+
+    try
+    {
+        _RecordsetPtr recordSet = m_connection->Execute(
+            (_bstr_t)query.c_str(), NULL, adConnectUnspecified);
+
+        return recordSet;
+    }
+    catch (_com_error)
+    {
+        return NULL;
+    }
+}
+

@@ -11,6 +11,7 @@ public:
     _RecordsetPtr SelectByString(wchar_t* str);
     bool UpdateByString(wchar_t* str);
     bool UpdatePreviewInfo(int id, int previewTime);
+    _RecordsetPtr SelectByLeftListView(wchar_t* name, wchar_t* oldHash);
 
     CSQLControl();
     ~CSQLControl();

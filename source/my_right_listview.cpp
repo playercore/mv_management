@@ -4,6 +4,7 @@
 
 #include "list_item_define.h"
 #include "common.h"
+#include "field_column_mapping.h"
 
 using std::wstring;
 
@@ -15,7 +16,6 @@ IMPLEMENT_DYNCREATE(CMyRightListView, CListView)
 CMyRightListView::CMyRightListView()
     : m_isAscending(true)
     , m_sortColumn(-1)
-    , m_pathCol(-1)
 {
 
 }
@@ -113,11 +113,6 @@ void CMyRightListView::OnColumnClick(NMHDR* pNMHDR, LRESULT* pResult)
     *pResult = 0;
 }
 
-void CMyRightListView::SetPathCol(int col)
-{
-    m_pathCol = col;
-}
-
 void CMyRightListView::OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult)
 {
     LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
@@ -136,7 +131,8 @@ void CMyRightListView::OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult)
     CString str;
     str += L"\"";
     CListCtrl& list = GetListCtrl();
-    str += list.GetItemText(pNMItemActivate->iItem, m_pathCol);
+    str += list.GetItemText(pNMItemActivate->iItem, 
+                            FieldColumnMapping::kSongFullListFilePath);
     str += L"\"";
 
     SHELLEXECUTEINFO  ShExecInfo;
