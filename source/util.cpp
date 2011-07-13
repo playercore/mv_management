@@ -22,7 +22,6 @@ string WideCharToMultiByte(const wstring& from)
 
 wstring Utf8ToWideChar(const string& from)
 {
-    // TODO: 是否在程序初始化时而不是每次调用本函数时调用setlocale会更好。
     setlocale(LC_ALL, "chs");
     wstring result;
     do
@@ -31,11 +30,7 @@ wstring Utf8ToWideChar(const string& from)
         if (bufSize < 2)
             break;
 
-#if (_MSC_VER >= 1600)
         unique_ptr<wchar_t[]> buf(new wchar_t[bufSize]);
-#else
-        scoped_array<wchar_t> buf(new wchar_t[bufSize]);
-#endif
         if (mbstowcs(buf.get(), from.c_str(), bufSize) < 2)
             break;
 

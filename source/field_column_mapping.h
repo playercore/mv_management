@@ -11,6 +11,7 @@ public:
         kSongFullListSongId,
         kSongFullListFilePath,
         kSongFullListMd5,
+        kSongFullListEditorRename,
         kSongFullListNumOfTracks,
         kRightViewFilePath,
     };

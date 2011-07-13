@@ -74,7 +74,7 @@ void CMVManagementDialog::DoDataExchange(CDataExchange* dataExch)
     DDX_Control(dataExch, IDC_TAB1, m_tab);
     DDX_Text(dataExch, IDC_EDIT_ID_FROM, m_id_from);
     DDX_Text(dataExch, IDC_EDIT_ID_TO, m_id_to);
-
+    DDX_Control(dataExch, IDC_STATIC_GUIDE, guide_);
 }
 
 BEGIN_MESSAGE_MAP(CMVManagementDialog, CDialogEx)
@@ -126,6 +126,8 @@ BOOL CMVManagementDialog::OnInitDialog()
 	SetIcon(m_icon, FALSE);		// 设置小图标
     	
 	// TODO: 在此添加额外的初始化代码
+    guide_.ShowWindow(SW_HIDE);
+
     // 获取本机IP
     m_ip = GetLocalIP().c_str();
 
@@ -356,7 +358,7 @@ void CMVManagementDialog::updateAllSongList(_RecordsetPtr recordset)
         t = recordset->GetCollect(16L);
         int index = m_songFullList.AddItem(
             songIdInText, songId,
-            ((VT_NULL != t.vt) ? static_cast<int>(t) : 6000), md5);
+            ((VT_NULL != t.vt) ? static_cast<int>(t) : -1), md5);
         for (long i = 1;i < num; ++i)
         {
             t = recordset->GetCollect(i);
@@ -365,6 +367,7 @@ void CMVManagementDialog::updateAllSongList(_RecordsetPtr recordset)
                 songIdInText = (LPWSTR)(_bstr_t)t;
             else
                 songIdInText = L"";
+
             m_songFullList.SetItemText(row, i, songIdInText);
         }
 

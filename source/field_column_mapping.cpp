@@ -1,7 +1,7 @@
 #include "field_column_mapping.h"
 
 namespace {
-const int mapping[] = { 0, 1, 2, 10, 6 };
+const int mapping[] = { 0, 1, 2, 3, 10, 6 };
 }
 
 int FieldColumnMapping::GetColumnIndex(FieldName fieldName)

@@ -93,10 +93,12 @@ void PictureControl::Paint()
 
 //------------------------------------------------------------------------------
 PreviewDialog::PreviewDialog(CWnd* parent, const path& mvPath,
-                             const path& previewPath, int64 initialPreviewTime)
+                             const path& previewPath, int64 initialPreviewTime,
+                             const wstring& songName)
     : CDialog(PreviewDialog::IDD, parent)
     , mvPath_(mvPath)
     , previewPath_(previewPath)
+    , songName_(songName)
     , timeSlider_()
     , preview_()
     , media_(NULL, av_close_input_file)
@@ -143,7 +145,7 @@ BOOL PreviewDialog::OnInitDialog()
 {
     CDialog::OnInitDialog();
 
-    wstring caption = L"Preview of file : " + mvPath_.filename().wstring();
+    wstring caption = L"Preview of file : " + songName_;
     SetWindowText(caption.c_str());
 
     Open();
