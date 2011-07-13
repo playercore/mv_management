@@ -154,8 +154,8 @@ void CSplitterDialog::Search(_RecordsetPtr recordset)
     }
 
     listCtrl.SetRedraw(TRUE);
-    listCtrl.SetItemState(0, LVIS_SELECTED|LVIS_FOCUSED, 
-        LVIS_SELECTED|LVIS_FOCUSED);
+//     listCtrl.SetItemState(0, LVIS_SELECTED|LVIS_FOCUSED, 
+//         LVIS_SELECTED|LVIS_FOCUSED);
 }
 
 LRESULT CSplitterDialog::updateLeftListSel(WPARAM waram, LPARAM param)
@@ -177,7 +177,6 @@ LRESULT CSplitterDialog::updateLeftListSel(WPARAM waram, LPARAM param)
 
     int row = 0;
     listCtrl.SetRedraw(FALSE); 
-    DWORD begin = GetTickCount();
     while (!recordset->adoEOF)
     {
         _variant_t t = recordset->GetCollect((long)0);

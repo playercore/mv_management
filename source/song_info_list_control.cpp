@@ -250,13 +250,13 @@ void CMyListCtrl::OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult)
             else if (colName == L"原唱音轨")
                 item.TrackType = GetItemText(selItem, i); 
             else if (colName == L"歌曲类型")
-                item.MusicType = GetItemText(selItem, i);   
+                item.MVType = GetItemText(selItem, i);   
             else if (colName == L"新哈希值")
                 item.NewHash = GetItemText(selItem, i);   
             else if (colName == L"画质级别")
                 item.Quality = GetItemText(selItem, i);    
         } 
-        ::AfxGetMainWnd()->SendMessage(UPDATESELITEM, (WPARAM)&item, 0);
+        ::AfxGetMainWnd()->SendMessage(UPDATESELITEM, (WPARAM)&item, selItem);
     }
 
     *pResult = 0;
@@ -721,4 +721,10 @@ void SongInfoListControl::ConfirmPreviewTime(int songId)
     assert(songIdToItem_.end() != iter);
     if (songIdToItem_.end() != iter)
         iter->second.PreviewTime = iter->second.PreviewTimeToBe;
+}
+
+void SongInfoListControl::SelectItem(int index)
+{
+    impl_->SetItemState(index, LVIS_SELECTED|LVIS_FOCUSED, 
+        LVIS_SELECTED|LVIS_FOCUSED);
 }

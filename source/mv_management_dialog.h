@@ -41,7 +41,7 @@ private:
     afx_msg void OnBnClickedDefinedMVType(UINT id); //MV类型为已定义的
 	afx_msg void OnTcnSelchange(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnBnClickedButtonSearch();
-    void updateAllSongList(_RecordsetPtr recordset);
+    void updateSongFullListByRecordset(_RecordsetPtr recordset);
     afx_msg LRESULT updateListSel(WPARAM waram, LPARAM param);
     afx_msg void OnBnClickedButtonSubmit();
     afx_msg void OnCbnSelchangeComboFilterCondition();
@@ -51,6 +51,7 @@ private:
     afx_msg void OnSize(UINT nType, int cx, int cy);
     virtual BOOL PreTranslateMessage(MSG* pMsg);
     void simpleUpdate(_RecordsetPtr& recordset);
+    void updateSongFullListByString(TListItem* item, bool isReplace);
 
 	HICON m_icon;
 	SongInfoListControl m_songFullList;
@@ -62,6 +63,7 @@ private:
     int m_filterType;
     int m_page; //0：所有歌曲 ，1：去除重复歌曲
     CString m_ip;
-    CString m_curSelectedId;
+    //CString m_curSelectedSongId;
+    int m_curListSelItem;
     CStatic guide_;
 };

@@ -14,6 +14,13 @@ public:
         kSongFullListEditorRename,
         kSongFullListNumOfTracks,
         kRightViewFilePath,
+        kSongFullListMVType,
+        kSongFullListTrackType,
+        kSongFullListNotes,
+        kSongFullListInterlace,
+        kSongFullListQuality,
+        kSongFullListMVStatus,
+        kSongFullListNewHash
     };
 
     FieldColumnMapping() {}

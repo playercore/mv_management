@@ -13,7 +13,7 @@ struct TListItem
     CString IsInterlace;
     CString Notes;
     CString TrackType;
-    CString MusicType;
+    CString MVType;
     CString NewHash;
     CString Quality;
 };

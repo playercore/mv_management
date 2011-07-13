@@ -9,6 +9,7 @@
 #include "afxdialogex.h"
 #include "afxdb.h"
 
+#include "field_column_mapping.h"
 #include "mv_management_app.h"
 #include "search_dialog.h"
 #include "sql_control.h"
@@ -64,6 +65,7 @@ CMVManagementDialog::CMVManagementDialog(CWnd* parent /*=NULL*/)
     , m_id_from(L"")
     , m_id_to(L"")
     , m_page(0)
+    , m_curListSelItem(-1)
 {
 	m_icon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -241,7 +243,7 @@ BOOL CMVManagementDialog::OnInitDialog()
             m_songFullList.InsertColumn(i, strName, LVCFMT_LEFT , 80, i);
         }
 
-        updateAllSongList(recordset);
+        updateSongFullListByRecordset(recordset);
     }
         
     //m_splitterDialog.SetConnectionPtr(m_connection);
@@ -316,6 +318,8 @@ void CMVManagementDialog::OnTcnSelchange(NMHDR *pNMHDR, LRESULT *pResult)
 	
 	int num = m_tab.GetCurSel();
 	m_page = num;
+    _RecordsetPtr recordSet;
+    simpleUpdate(recordSet);
 	switch(num)	
 	{
  		case 0:
@@ -323,14 +327,16 @@ void CMVManagementDialog::OnTcnSelchange(NMHDR *pNMHDR, LRESULT *pResult)
 			m_songFullList.ShowWindow(SW_SHOW);
 			m_splitterDialog.ShowWindow(SW_HIDE);
 //             int index = m_songFullList.GetSelectionMark();
-//             m_songFullList.SetItemState(index, LVIS_SELECTED|LVIS_FOCUSED, 
-//                 LVIS_SELECTED|LVIS_FOCUSED);
+            m_songFullList.DeleteAllItems();
+            updateSongFullListByRecordset(recordSet);
+            m_songFullList.SelectItem(0);
 			break;
 		}
 		case 1:
 		{
 			m_songFullList.ShowWindow(SW_HIDE);		
 			m_splitterDialog.ShowWindow(SW_SHOW);	
+            updateSplitterWnd(recordSet);
             m_splitterDialog.SelectItem();
 			break;
 		}
@@ -338,7 +344,7 @@ void CMVManagementDialog::OnTcnSelchange(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 }
 
-void CMVManagementDialog::updateAllSongList(_RecordsetPtr recordset)
+void CMVManagementDialog::updateSongFullListByRecordset(_RecordsetPtr recordset)
 {
     Fields* fields;
     recordset->get_Fields(&fields);
@@ -398,13 +404,14 @@ void CMVManagementDialog::OnBnClickedButtonSearch()
     
     m_songFullList.DeleteAllItems();
 
-    updateAllSongList(recordSet);
+    updateSongFullListByRecordset(recordSet);
 }
 
 LRESULT CMVManagementDialog::updateListSel(WPARAM waram, LPARAM param)
 {
     TListItem* item = (TListItem*)waram;
-    m_curSelectedId = item->id;
+    m_curListSelItem = (int)param;
+    //m_curSelectedSongId = item->id;
     GetDlgItem(IDC_EDIT_SONG_NAME)->SetWindowText(item->Name);
     GetDlgItem(IDC_EDIT_NOTES)->SetWindowTextW(item->Notes);
     GetDlgItem(IDC_EDIT_NEW_HASH)->SetWindowText(item->NewHash);
@@ -428,7 +435,7 @@ LRESULT CMVManagementDialog::updateListSel(WPARAM waram, LPARAM param)
     int quality = _wtoi((LPTSTR)(LPCTSTR)item->Quality);
     ((CComboBox*)GetDlgItem(IDC_COMBO_MV_QUALITY))->SetCurSel(quality - 1);
 
-    CString musicType = (LPTSTR)(LPCTSTR)item->MusicType;
+    CString musicType = (LPTSTR)(LPCTSTR)item->MVType;
     if (musicType == L"MTV")
         CheckRadioButton(IDC_RADIO_6, IDC_RADIO_11, IDC_RADIO_6);
     else if (musicType == L"演唱会")
@@ -443,7 +450,7 @@ LRESULT CMVManagementDialog::updateListSel(WPARAM waram, LPARAM param)
     {
         CheckRadioButton(IDC_RADIO_6, IDC_RADIO_11, IDC_RADIO_11);
         GetDlgItem(IDC_COMBO_MV_TYPE)->SetWindowText(
-            (LPTSTR)(LPCTSTR)item->MusicType);  
+            (LPTSTR)(LPCTSTR)item->MVType);  
     }
     return 0;
 }
@@ -537,9 +544,9 @@ void CMVManagementDialog::OnBnClickedButtonSubmit()
     query += L"',画质级别 = ";
     query += quality;
 
-    r = ((CButton*)GetDlgItem(IDC_CHECK_REPLACE))->GetCheck();
-    
-    if (r)
+    bool isReplace = ((CButton*)GetDlgItem(IDC_CHECK_REPLACE))->GetCheck();
+ 
+    if (isReplace)
     {
         query += L",新哈希值 = '";
         query += newHash;
@@ -550,15 +557,37 @@ void CMVManagementDialog::OnBnClickedButtonSubmit()
     query += L"',提交时间 = '";
     query += curTime;
     query += L"',歌曲状态 = '已审阅' WHERE 歌曲编号 = ";
-    query += m_curSelectedId;
+    wstring songID = m_songFullList.GetItemText(m_curListSelItem, 
+        FieldColumnMapping::get()->GetColumnIndex(
+            FieldColumnMapping::kSongFullListSongId));
+    query += songID.c_str();
     
-    CSQLControl::get()->UpdateByString((LPTSTR)(LPCTSTR)query);
+    if (!CSQLControl::get()->UpdateByString((LPTSTR)(LPCTSTR)query))
+    { 
+        MessageBox(L"插入失败", L"警告", MB_OK);
+        return;
+    }
+
+    TListItem item;
+    item.id = songID.c_str();
+    item.IsInterlace = isInterlace;
+    item.MVType = mvType;
+    item.Name = name;
+    item.NewHash = newHash;
+    item.Notes = notes;
+    item.Quality = quality;
+    item.TrackType = trackType;
+    if (m_page == 0)
+    {
+        updateSongFullListByString(&item, isReplace);                  
+    }
+   
     
-    m_songFullList.DeleteAllItems();
+    //m_songFullList.DeleteAllItems();
 
     _RecordsetPtr recordSet;
     simpleUpdate(recordSet);
-    updateAllSongList(recordSet);
+    //updateAllSongList(recordSet);
     updateSplitterWnd(recordSet);
 }
 
@@ -659,7 +688,7 @@ BOOL CMVManagementDialog::PreTranslateMessage(MSG* pMsg)
                             return FALSE;
 
                         if (m_page == 0)
-                            updateAllSongList(recordSet);
+                            updateSongFullListByRecordset(recordSet);
                         else if (m_page == 1)
                             updateSplitterWnd(recordSet);                      
                     }
@@ -682,4 +711,59 @@ void CMVManagementDialog::simpleUpdate(_RecordsetPtr& recordset)
         ((CComboBox*)GetDlgItem(IDC_COMBO_FILTER_CONDITION))->GetCurSel();
 
     recordset = CSQLControl::get()->BaseSelect(idFrom, idTo, m_filterType);
+}
+
+void CMVManagementDialog::updateSongFullListByString(TListItem* item, 
+                                                     bool isReplace)
+{
+    m_songFullList.SetItemText(
+        m_curListSelItem,
+        FieldColumnMapping::get()->GetColumnIndex(
+        FieldColumnMapping::kSongFullListMVType), 
+        item->MVType);
+
+    m_songFullList.SetItemText(
+        m_curListSelItem,
+        FieldColumnMapping::get()->GetColumnIndex(
+        FieldColumnMapping::kSongFullListTrackType), 
+        item->TrackType);
+
+    m_songFullList.SetItemText(
+        m_curListSelItem,
+        FieldColumnMapping::get()->GetColumnIndex(
+        FieldColumnMapping::kSongFullListEditorRename), 
+        item->Name);
+
+    m_songFullList.SetItemText(
+        m_curListSelItem,
+        FieldColumnMapping::get()->GetColumnIndex(
+        FieldColumnMapping::kSongFullListNotes), 
+        item->Notes);
+
+    m_songFullList.SetItemText(
+        m_curListSelItem,
+        FieldColumnMapping::get()->GetColumnIndex(
+        FieldColumnMapping::kSongFullListInterlace), 
+        item->IsInterlace);
+
+    m_songFullList.SetItemText(
+        m_curListSelItem,
+        FieldColumnMapping::get()->GetColumnIndex(
+        FieldColumnMapping::kSongFullListQuality), 
+        item->Quality);
+
+    m_songFullList.SetItemText(
+        m_curListSelItem,
+        FieldColumnMapping::get()->GetColumnIndex(
+        FieldColumnMapping::kSongFullListMVStatus), 
+        L"已审阅");
+
+    if (isReplace)
+    {
+        m_songFullList.SetItemText(
+            m_curListSelItem,
+            FieldColumnMapping::get()->GetColumnIndex(
+            FieldColumnMapping::kSongFullListNewHash), 
+            item->NewHash);
+    }
 }

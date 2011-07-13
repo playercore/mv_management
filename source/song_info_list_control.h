@@ -27,6 +27,7 @@ public:
     void ShowWindow(int showCommand);
     void MoveWindow(const CRect& rect);
     bool HasBeenCreated();
+    void SelectItem(int index);
 
 private:
     friend class CMyListCtrl;

@@ -41,7 +41,6 @@ void CMyLeftListView::OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult)
         TListItem item;
         CListCtrl& listCtrl = GetListCtrl();
         CString fullName;
-
         for (int i = 0;i < listCtrl.GetHeaderCtrl()->GetItemCount(); i++)
         {
             HDITEM hdi; 
@@ -69,14 +68,14 @@ void CMyLeftListView::OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult)
             else if (colName == L"原唱音轨")
                 item.TrackType = listCtrl.GetItemText(selItem, i); 
             else if (colName == L"歌曲类型")
-                item.MusicType = listCtrl.GetItemText(selItem, i);   
+                item.MVType = listCtrl.GetItemText(selItem, i);   
             else if (colName == L"新哈希值")
                 item.NewHash = listCtrl.GetItemText(selItem, i);   
             else if (colName == L"画质级别")
                 item.Quality = listCtrl.GetItemText(selItem, i);    
         } 
 
-        ::AfxGetMainWnd()->SendMessage(UPDATESELITEM, (WPARAM)&item, 0);
+        ::AfxGetMainWnd()->SendMessage(UPDATESELITEM, (WPARAM)&item, selItem);
 
         CString songName;
         int index = fullName.ReverseFind('-');
