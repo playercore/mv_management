@@ -5,8 +5,10 @@
 #include <boost/lexical_cast.hpp>
 
 #include "common.h"
+#include "util.h"
 
 using std::wstring;
+using std::string;
 using boost::lexical_cast;
 
 bool CSQLControl::initConnection()
@@ -45,12 +47,15 @@ bool CSQLControl::initConnection()
         strSQL += L";PWD=";
         strSQL += password;
 
+        //m_connection->PutCursorLocation(adUseClient);
         m_connection->Open((_bstr_t)strSQL.c_str(), "","",adConnectUnspecified);
     }
     catch (_com_error e)
     {
         return false;
     }
+
+
 
     return true;
 }
@@ -80,7 +85,7 @@ _RecordsetPtr CSQLControl::BaseSelect(int idFrom, int idTo, int flag)
     {
         wstring strFlag = lexical_cast<wstring>(flag);
         query += L" and 标识=";
-        query += flag;
+        query += strFlag;
     }
 
     try
@@ -88,6 +93,7 @@ _RecordsetPtr CSQLControl::BaseSelect(int idFrom, int idTo, int flag)
         _RecordsetPtr recordSet = 
             m_connection->Execute((_bstr_t)query.c_str(), NULL,
             adConnectUnspecified);
+
         return recordSet;
     }
     catch (_com_error e)
@@ -97,6 +103,7 @@ _RecordsetPtr CSQLControl::BaseSelect(int idFrom, int idTo, int flag)
 }
 
 CSQLControl::CSQLControl()
+    : m_connection(NULL)
 {
     if (!initConnection())
         MessageBox(NULL, L"连接数据库失败", L"", MB_OK);   
@@ -230,5 +237,78 @@ _RecordsetPtr CSQLControl::SelectByLeftListView(wchar_t* name, wchar_t* oldHash)
     {
         return NULL;
     }
+}
+
+void CSQLControl::StatusStoreProc(int from, int to, int flag, int* curReviewed,
+                                  int* todayReviewed, int* needReview, 
+                                  int* totalSong)
+{
+    try
+    {
+        m_connection->PutCursorLocation(adUseClient);
+        _CommandPtr command;
+        command.CreateInstance(__uuidof(Command));
+        command->ActiveConnection = m_connection;
+        command->CommandType = adCmdStoredProc;
+        command->CommandText = _bstr_t(L"dbo.GET_SUBMIT_STATE");
+
+        _ParameterPtr paramFromIn = command->CreateParameter(
+            _bstr_t(L""), adInteger, adParamInput, sizeof(int));
+        paramFromIn->Value = _variant_t(from);
+        command->Parameters->Append(paramFromIn);
+
+        _ParameterPtr paramToIn = command->CreateParameter(
+            _bstr_t(L""), adInteger, adParamInput, sizeof(int));
+        paramToIn->Value = _variant_t(to);
+        command->Parameters->Append(paramToIn);
+        
+        string ip = WideCharToMultiByte(GetLocalIP());
+        _ParameterPtr paramIPIn = command->CreateParameter(
+            _bstr_t(L""), adVarChar, adParamInput, ip.length() + 1);
+        paramIPIn->Value = _variant_t(ip.c_str());
+        command->Parameters->Append(paramIPIn);
+
+        _ParameterPtr paramFlagIn = command->CreateParameter(
+            _bstr_t(L""), adInteger, adParamInput, sizeof(int));
+        paramFlagIn->Value = _variant_t(flag);
+        command->Parameters->Append(paramFlagIn);
+
+        _ParameterPtr paramCurReviewedOut = command->CreateParameter(
+            _bstr_t(L""), adInteger, adParamOutput, sizeof(int));
+
+        command->Parameters->Append(paramCurReviewedOut);
+
+        _ParameterPtr paramTodayReviewedOut = command->CreateParameter(
+            _bstr_t(L""), adInteger, adParamOutput, sizeof(int));
+
+        command->Parameters->Append(paramTodayReviewedOut);
+        
+        _ParameterPtr paramTotalSongOut = command->CreateParameter(
+            _bstr_t(L""), adInteger, adParamOutput, sizeof(int));
+
+        command->Parameters->Append(paramTotalSongOut);
+
+        _ParameterPtr paramNeedReviewOut = command->CreateParameter(
+            _bstr_t(L""), adInteger, adParamOutput, sizeof(int));
+
+        command->Parameters->Append(paramNeedReviewOut);
+       
+        _RecordsetPtr rs;
+        rs = command->Execute(NULL, NULL, adCmdStoredProc);
+
+        *curReviewed = (int)paramCurReviewedOut->Value;
+        *todayReviewed = (int)paramTodayReviewedOut->Value;
+        *needReview = (int)paramNeedReviewOut->Value;
+        *totalSong = (int)paramTotalSongOut->Value;
+
+        command.Detach();
+        m_connection->PutCursorLocation(adUseServer);
+    }
+    catch (_com_error e)
+    {
+    	MessageBox(NULL, e.Description(), L"", MB_OK);
+    }
+ 
+
 }
 
