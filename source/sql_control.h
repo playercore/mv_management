@@ -3,7 +3,6 @@
 
 #include "third_party/chromium/base/singleton.h"
 #import "msado15.dll" no_namespace rename("EOF","adoEOF") rename("BOF","adoBOF")
-#include "F:/tools/mv_management/Debug/obj/mv_management/msado15.tlh"
 
 class CSQLControl : public Singleton<CSQLControl>
 {
