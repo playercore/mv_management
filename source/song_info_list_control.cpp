@@ -566,8 +566,8 @@ bool SongInfoListControl::Create(CWnd* parent, const CRect& rect,
                                  int resourceId)
 {
     BOOL r = impl_->Create(
-        WS_VISIBLE | WS_BORDER |WS_CHILD | LVS_REPORT | WS_VSCROLL |
-            WS_HSCROLL | LVS_SHOWSELALWAYS | LVS_SINGLESEL,
+        WS_VISIBLE | WS_CHILD | LVS_REPORT | WS_VSCROLL | WS_HSCROLL |
+            LVS_SHOWSELALWAYS | LVS_SINGLESEL,
         rect, parent, resourceId);
     if (r)
         impl_->SetExtendedStyle(LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT);
@@ -667,7 +667,7 @@ void SongInfoListControl::MoveWindow(const CRect& rect)
 
 bool SongInfoListControl::HasBeenCreated()
 {
-    return !!impl_->GetSafeHwnd();
+    return !!IsWindow(impl_->GetSafeHwnd());
 }
 
 void SongInfoListControl::UpdateMapping()
@@ -725,6 +725,6 @@ void SongInfoListControl::ConfirmPreviewTime(int songId)
 
 void SongInfoListControl::SelectItem(int index)
 {
-    impl_->SetItemState(index, LVIS_SELECTED|LVIS_FOCUSED, 
-        LVIS_SELECTED|LVIS_FOCUSED);
+    impl_->SetItemState(index, LVIS_SELECTED | LVIS_FOCUSED, 
+                        LVIS_SELECTED | LVIS_FOCUSED);
 }

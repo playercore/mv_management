@@ -16,6 +16,7 @@
     <ClCompile Include="source\field_column_mapping.cpp" />
     <ClCompile Include="source\song_info_list_control.cpp" />
     <ClCompile Include="source\sql_control.cpp" />
+    <ClCompile Include="source\collapse_button.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\targetver.h" />
@@ -40,6 +41,7 @@
     <ClInclude Include="source\field_column_mapping.h" />
     <ClInclude Include="source\song_info_list_control.h" />
     <ClInclude Include="source\sql_control.h" />
+    <ClInclude Include="source\collapse_button.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="%28resource%29">

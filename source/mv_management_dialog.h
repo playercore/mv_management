@@ -11,6 +11,8 @@
 #include "all_song_list_dialog.h"
 #include "splitter_dialog.h"
 #include "list_item_define.h"
+#include "collapse_button.h"
+
 #import "msado15.dll" no_namespace rename("EOF","adoEOF") rename("BOF","adoBOF")
 
 // CMVManagementDialog 对话框
@@ -52,18 +54,20 @@ private:
     virtual BOOL PreTranslateMessage(MSG* pMsg);
     void simpleUpdate(_RecordsetPtr& recordset);
     void updateSongFullListByString(TListItem* item, bool isReplace);
+    afx_msg void OnBnClickedButtonOnlyList();
+    void Layout(int cx, int cy);
 
 	HICON m_icon;
 	SongInfoListControl m_songFullList;
 	CTabCtrl m_tab;
-     
     CString m_id_from;
     CString m_id_to;
     CSplitterDialog m_splitterDialog;
     int m_filterType;
     int m_page; //0：所有歌曲 ，1：去除重复歌曲
     CString m_ip;
-    //CString m_curSelectedSongId;
     int m_curListSelItem;
     CStatic guide_;
+    CollapseButton collapse_;
+    int verticalDist_;
 };

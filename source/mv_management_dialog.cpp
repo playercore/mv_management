@@ -24,7 +24,29 @@ using boost::filesystem3::path;
 #define new DEBUG_NEW
 #endif
 
-// 用于应用程序“关于”菜单项的 CAboutDlg 对话框
+namespace {
+struct EnumChildrenParam
+{
+    HWND Excluded1;
+    HWND Excluded2;
+    HWND Excluded3;
+    HWND SpecifiedParent;
+    bool Hide;
+};
+BOOL __stdcall EnumAndShow(HWND h, LPARAM p)
+{
+    EnumChildrenParam* param = reinterpret_cast<EnumChildrenParam*>(p);
+    if ((h == param->Excluded1) || (h == param->Excluded2) ||
+        (h == param->Excluded3))
+        return TRUE;
+
+    if (GetParent(h) != param->SpecifiedParent)
+        return TRUE;
+
+    ShowWindow(h, param->Hide ? SW_HIDE : SW_SHOW);
+    return TRUE;
+}
+}
 
 class CAboutDlg : public CDialogEx
 {
@@ -54,18 +76,14 @@ void CAboutDlg::DoDataExchange(CDataExchange* dataExch)
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 END_MESSAGE_MAP()
 
-
-// Cmv_managementDlg 对话框
-
-
-
-
 CMVManagementDialog::CMVManagementDialog(CWnd* parent /*=NULL*/)
 	: CDialogEx(CMVManagementDialog::IDD, parent)
     , m_id_from(L"")
     , m_id_to(L"")
     , m_page(0)
     , m_curListSelItem(-1)
+    , collapse_()
+    , verticalDist_(-1)
 {
 	m_icon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -77,6 +95,7 @@ void CMVManagementDialog::DoDataExchange(CDataExchange* dataExch)
     DDX_Text(dataExch, IDC_EDIT_ID_FROM, m_id_from);
     DDX_Text(dataExch, IDC_EDIT_ID_TO, m_id_to);
     DDX_Control(dataExch, IDC_STATIC_GUIDE, guide_);
+    DDX_Control(dataExch, IDC_BUTTON_LIST_ONLY, collapse_);
 }
 
 BEGIN_MESSAGE_MAP(CMVManagementDialog, CDialogEx)
@@ -84,14 +103,18 @@ BEGIN_MESSAGE_MAP(CMVManagementDialog, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
     ON_WM_CLOSE()
-
 	ON_NOTIFY(TCN_SELCHANGE, IDC_TAB1, &CMVManagementDialog::OnTcnSelchange)
-    ON_BN_CLICKED(IDC_BUTTON_SEARCH, &CMVManagementDialog::OnBnClickedButtonSearch)
+    ON_BN_CLICKED(IDC_BUTTON_SEARCH,
+                  &CMVManagementDialog::OnBnClickedButtonSearch)
     ON_MESSAGE(UPDATESELITEM, &CMVManagementDialog::updateListSel)
     ON_WM_CREATE()
-    ON_BN_CLICKED(IDC_BUTTON_SUBMIT, &CMVManagementDialog::OnBnClickedButtonSubmit)
-    ON_CBN_SELCHANGE(IDC_COMBO_FILTER_CONDITION, &CMVManagementDialog::OnCbnSelchangeComboFilterCondition)
+    ON_BN_CLICKED(IDC_BUTTON_SUBMIT,
+                  &CMVManagementDialog::OnBnClickedButtonSubmit)
+    ON_CBN_SELCHANGE(IDC_COMBO_FILTER_CONDITION,
+                     &CMVManagementDialog::OnCbnSelchangeComboFilterCondition)
     ON_MESSAGE(RIGHTLISTITEM, &CMVManagementDialog::updateRightListSel)
+    ON_BN_CLICKED(IDC_BUTTON_ONLY_LIST,
+                  &CMVManagementDialog::OnBnClickedButtonOnlyList)
     ON_WM_SIZE()
 END_MESSAGE_MAP()
 
@@ -126,8 +149,7 @@ BOOL CMVManagementDialog::OnInitDialog()
 	//  执行此操作
 	SetIcon(m_icon, TRUE);			// 设置大图标
 	SetIcon(m_icon, FALSE);		// 设置小图标
-    	
-	// TODO: 在此添加额外的初始化代码
+
     guide_.ShowWindow(SW_HIDE);
 
     // 获取本机IP
@@ -206,22 +228,17 @@ BOOL CMVManagementDialog::OnInitDialog()
 		}
 	}
 
-	CRect tabRect;
-	m_tab.GetClientRect(&tabRect);  
-	tabRect.top += 22;
-	tabRect.bottom -= 0;
-	tabRect.left += 0;  
-	tabRect.right -= 2;  
+	CRect rect;
+    m_tab.GetWindowRect(&rect);
+    ScreenToClient(&rect);
+    verticalDist_ = rect.top;
 
 	m_tab.InsertItem(0,L"所有歌曲");
 	m_tab.InsertItem(1,L"去除重复歌曲");
 
-
-    m_songFullList.Create(&m_tab, tabRect, IDC_LIST1);
-    //m_songFullList.MoveWindow(&tabRect);
-
+    m_songFullList.Create(&m_tab, rect, IDC_LIST1);
     m_splitterDialog.Create(IDD_DIALOG_SPLITTER, &m_tab);
-    m_splitterDialog.MoveWindow(&tabRect);
+    m_splitterDialog.MoveWindow(&rect);
   
     _RecordsetPtr recordset;
     simpleUpdate(recordset);
@@ -247,6 +264,8 @@ BOOL CMVManagementDialog::OnInitDialog()
     }
         
     //m_splitterDialog.SetConnectionPtr(m_connection);
+    GetClientRect(&rect);
+    Layout(rect.Width(), rect.Height());
   
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -544,7 +563,7 @@ void CMVManagementDialog::OnBnClickedButtonSubmit()
     query += L"',画质级别 = ";
     query += quality;
 
-    bool isReplace = ((CButton*)GetDlgItem(IDC_CHECK_REPLACE))->GetCheck();
+    bool isReplace = !!((CButton*)GetDlgItem(IDC_CHECK_REPLACE))->GetCheck();
  
     if (isReplace)
     {
@@ -623,44 +642,11 @@ void CMVManagementDialog::OnSize(UINT nType, int cx, int cy)
 {
     CDialogEx::OnSize(nType, cx, cy);
 
-    CRect clientRect;  
-    GetClientRect(&clientRect);  
+    if (!IsWindow(m_tab.GetSafeHwnd()) || !m_songFullList.HasBeenCreated() ||
+        !IsWindow(m_splitterDialog.GetSafeHwnd()))
+        return;
 
-    // TODO: 在此处添加消息处理程序代码
-     
-    if (m_tab.m_hWnd!= NULL)
-    {
-        CRect tabRect;
-        GetClientRect(&tabRect);  
-        tabRect.top = clientRect.top + 275;  
-        tabRect.bottom = clientRect.bottom;  
-        tabRect.left = clientRect.left + 10;  
-        tabRect.right = clientRect.right - 10;  
-
-        m_tab.MoveWindow(tabRect);
-    }
-
-    if (m_songFullList.HasBeenCreated())
-    {
-        CRect tabRect;
-        m_tab.GetClientRect(&tabRect);  
-        tabRect.top += 22;
-        tabRect.bottom -= 0;
-        tabRect.left += 0;  
-        tabRect.right -= 2;    
-        m_songFullList.MoveWindow(tabRect);
-    }
-
-    if (m_splitterDialog.m_hWnd != NULL)
-    {
-        CRect tabRect;
-        m_tab.GetClientRect(&tabRect);  
-        tabRect.top += 22;
-        tabRect.bottom -= 0;
-        tabRect.left += 0;  
-        tabRect.right -= 2;    
-        m_splitterDialog.MoveWindow(tabRect);
-    }
+    Layout(cx, cy);
 }
 
 
@@ -719,43 +705,43 @@ void CMVManagementDialog::updateSongFullListByString(TListItem* item,
     m_songFullList.SetItemText(
         m_curListSelItem,
         FieldColumnMapping::get()->GetColumnIndex(
-        FieldColumnMapping::kSongFullListMVType), 
+            FieldColumnMapping::kSongFullListMVType), 
         item->MVType);
 
     m_songFullList.SetItemText(
         m_curListSelItem,
         FieldColumnMapping::get()->GetColumnIndex(
-        FieldColumnMapping::kSongFullListTrackType), 
+            FieldColumnMapping::kSongFullListTrackType), 
         item->TrackType);
 
     m_songFullList.SetItemText(
         m_curListSelItem,
         FieldColumnMapping::get()->GetColumnIndex(
-        FieldColumnMapping::kSongFullListEditorRename), 
+            FieldColumnMapping::kSongFullListEditorRename), 
         item->Name);
 
     m_songFullList.SetItemText(
         m_curListSelItem,
         FieldColumnMapping::get()->GetColumnIndex(
-        FieldColumnMapping::kSongFullListNotes), 
+            FieldColumnMapping::kSongFullListNotes), 
         item->Notes);
 
     m_songFullList.SetItemText(
         m_curListSelItem,
         FieldColumnMapping::get()->GetColumnIndex(
-        FieldColumnMapping::kSongFullListInterlace), 
+            FieldColumnMapping::kSongFullListInterlace), 
         item->IsInterlace);
 
     m_songFullList.SetItemText(
         m_curListSelItem,
         FieldColumnMapping::get()->GetColumnIndex(
-        FieldColumnMapping::kSongFullListQuality), 
+            FieldColumnMapping::kSongFullListQuality), 
         item->Quality);
 
     m_songFullList.SetItemText(
         m_curListSelItem,
         FieldColumnMapping::get()->GetColumnIndex(
-        FieldColumnMapping::kSongFullListMVStatus), 
+            FieldColumnMapping::kSongFullListMVStatus), 
         L"已审阅");
 
     if (isReplace)
@@ -766,4 +752,58 @@ void CMVManagementDialog::updateSongFullListByString(TListItem* item,
             FieldColumnMapping::kSongFullListNewHash), 
             item->NewHash);
     }
+}
+
+void CMVManagementDialog::OnBnClickedButtonOnlyList()
+{
+    CWnd* listOnly = GetDlgItem(IDC_BUTTON_LIST_ONLY);
+    CWnd* guide = GetDlgItem(IDC_STATIC_GUIDE);
+    if (!listOnly || !guide)
+        return;
+
+    EnumChildrenParam p = {
+        listOnly->GetSafeHwnd(), m_tab.GetSafeHwnd(), guide->GetSafeHwnd(),
+        GetSafeHwnd(), collapse_.IsCollapsed() };
+    EnumChildWindows(GetSafeHwnd(), EnumAndShow, reinterpret_cast<LPARAM>(&p));
+
+    CRect myRect;
+    GetClientRect(&myRect);
+    Layout(myRect.Width(), myRect.Height());
+}
+
+void CMVManagementDialog::Layout(int cx, int cy)
+{
+    // 'list-only' button.
+    CWnd* listOnly = GetDlgItem(IDC_BUTTON_LIST_ONLY);
+    CRect buttonRect;
+    listOnly->GetWindowRect(&buttonRect);
+    ScreenToClient(&buttonRect);
+
+    listOnly->SetWindowPos(NULL, buttonRect.left,
+                           collapse_.IsCollapsed() ? 10 : 263, 0, 0,
+                           SWP_NOSIZE);
+
+    // Tab control.
+    CRect tabRect;
+    m_tab.GetWindowRect(&tabRect);
+    ScreenToClient(&tabRect);
+
+    const int tabTop = collapse_.IsCollapsed() ? 25 : verticalDist_;
+    const int tabHeight = cy - tabTop - 12;
+    m_tab.SetWindowPos(NULL, tabRect.left, tabTop, cx - tabRect.left * 2,
+                       tabHeight, SWP_NOZORDER);
+
+    // Lists.
+    CRect itemRect;
+    m_tab.GetItemRect(0, &itemRect);
+    m_tab.GetClientRect(&tabRect);
+    CRect fullListRect(1, itemRect.Height() + 3, tabRect.Width() - 3,
+                       tabRect.Height() - 3);
+    m_songFullList.MoveWindow(&fullListRect);
+    m_splitterDialog.MoveWindow(&fullListRect);
+
+    // 'guide' control.
+    CWnd* guide = GetDlgItem(IDC_STATIC_GUIDE);
+    CRect guideRect;
+    guide->GetWindowRect(&guideRect);
 }
