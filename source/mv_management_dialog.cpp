@@ -1,5 +1,6 @@
 #include "mv_management_dialog.h"
 
+#include <sstream>
 #include <cmath>
 #include <string>
 #include <memory>
@@ -18,6 +19,7 @@
 
 using std::wstring;
 using std::unique_ptr;
+using std::wstringstream;
 using boost::filesystem3::path;
 
 #ifdef _DEBUG
@@ -149,6 +151,27 @@ BOOL CMVManagementDialog::OnInitDialog()
 	//  执行此操作
 	SetIcon(m_icon, TRUE);			// 设置大图标
 	SetIcon(m_icon, FALSE);		// 设置小图标
+
+    CRect rect;
+    GetClientRect(&rect);
+    CRect tabInitRect;
+    tabInitRect.top = rect.top + 275;  
+    tabInitRect.bottom = rect.bottom - 20;  
+    tabInitRect.left = rect.left + 10;  
+    tabInitRect.right = rect.right - 10;  
+    m_tab.MoveWindow(tabInitRect);
+    HWND statusBar = CreateStatusWindow(WS_CHILD | WS_VISIBLE | WS_BORDER,
+        L"",//显示在状态栏上的信息
+        this->m_hWnd, //父窗口句柄
+        IDS_STATUS); //预定义的资源ID 
+
+    int pint[6]={ rect.Width() / 6, rect.Width() / 3, rect.Width() / 2, 
+        rect.Width() * 2 / 3, rect.Width() * 5 / 6, -1 };
+    ::SendMessage(statusBar, SB_SETPARTS, 6, (LPARAM)pint);
+    ::SendMessage(statusBar,SB_SETTEXT,1,(LPARAM)L"当前已审核的歌曲：0");
+    ::SendMessage(statusBar,SB_SETTEXT,2,(LPARAM)L"当天审核的歌曲：0");
+    ::SendMessage(statusBar,SB_SETTEXT,3,(LPARAM)L"还没有审核的歌曲：0");
+    ::SendMessage(statusBar,SB_SETTEXT,4,(LPARAM)L"一共有歌曲数：0");
 
     guide_.ShowWindow(SW_HIDE);
 
@@ -601,13 +624,40 @@ void CMVManagementDialog::OnBnClickedButtonSubmit()
         updateSongFullListByString(&item, isReplace);                  
     }
    
-    
-    //m_songFullList.DeleteAllItems();
-
     _RecordsetPtr recordSet;
     simpleUpdate(recordSet);
-    //updateAllSongList(recordSet);
     updateSplitterWnd(recordSet);
+
+    UpdateData(TRUE);
+    int from = _wtoi((LPTSTR)(LPCTSTR)m_id_from);
+    int to = _wtoi((LPTSTR)(LPCTSTR)m_id_to);
+    int curReviewed = 0;
+    int todayReviewed = 0;
+    int needReview = 0;
+    int totalSong = 0;
+    CSQLControl::get()->StatusStoreProc(from, to, m_filterType, &curReviewed,
+                                        &todayReviewed, &needReview, &totalSong);
+
+    wstringstream strCurReviewed;
+    strCurReviewed << L"当前已审核的歌曲：" << curReviewed;
+
+    wstringstream strTodayReviewed;
+    strTodayReviewed << L"当天审核的歌曲：" << todayReviewed;
+
+    wstringstream strNeedReview;
+    strNeedReview << L"还没有审核的歌曲：" << needReview;
+
+    wstringstream strTotalSong;
+    strTotalSong << L"一共有歌曲数：" << totalSong;
+
+    GetDlgItem(IDS_STATUS)->SendMessage(
+        SB_SETTEXT, 1, (LPARAM)strCurReviewed.str().c_str());
+    GetDlgItem(IDS_STATUS)->SendMessage(
+        SB_SETTEXT, 2, (LPARAM)strTodayReviewed.str().c_str());
+    GetDlgItem(IDS_STATUS)->SendMessage(
+        SB_SETTEXT, 3, (LPARAM)strNeedReview.str().c_str());
+    GetDlgItem(IDS_STATUS)->SendMessage(
+        SB_SETTEXT, 4, (LPARAM)strTotalSong.str().c_str());
 }
 
 
