@@ -19,8 +19,6 @@ protected:
     void OnPaint();
 
 private:
-    void Paint(bool erase);
-
     bool collapsed_;
 };
 

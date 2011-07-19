@@ -12,6 +12,7 @@
 #include "splitter_dialog.h"
 #include "list_item_define.h"
 #include "collapse_button.h"
+#include "guide_control.h"
 
 #import "msado15.dll" no_namespace rename("EOF","adoEOF") rename("BOF","adoBOF")
 
@@ -55,7 +56,9 @@ private:
     void simpleUpdate(_RecordsetPtr& recordset);
     void updateSongFullListByString(TListItem* item, bool isReplace);
     afx_msg void OnBnClickedButtonOnlyList();
+    LRESULT OnSongFullListDisplaySwitch(WPARAM w, LPARAM l);
     void Layout(int cx, int cy);
+    void CreateStatusBar();
 
 	HICON m_icon;
 	SongInfoListControl m_songFullList;
@@ -65,9 +68,10 @@ private:
     CSplitterDialog m_splitterDialog;
     int m_filterType;
     int m_page; //0：所有歌曲 ，1：去除重复歌曲
-    CString m_ip;
     int m_curListSelItem;
-    CStatic guide_;
+    GuideControl guide_;
     CollapseButton collapse_;
-    int verticalDist_;
+    int tabTop_;
+    CStatic guideText1_;
+    CStatic guideText2_;
 };

@@ -3,9 +3,12 @@
 
 #include <string>
 
+class CBitmap;
+
 std::string WideCharToMultiByte(const std::wstring& from);
-std::wstring Utf8ToWideChar(const std::string& from);
+std::wstring MultiByteToWideChar(const std::string& from);
 wchar_t* GetMvPreviewPath();
+void LoadNotificationImage(int id, CBitmap* target, CBitmap* mask);
 
 template <typename T, typename F>
 class SmartInvokation

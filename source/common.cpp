@@ -65,7 +65,7 @@ std::wstring GetLocalIP()
         if((hostinfo = gethostbyname(name)) != NULL)  
         {  
             std::string t = inet_ntoa(*(struct in_addr*)*hostinfo->h_addr_list);  
-            ip = Utf8ToWideChar(t);
+            ip = MultiByteToWideChar(t);
         }  
     }  
 

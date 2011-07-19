@@ -24,11 +24,6 @@ LRESULT CollapseButton::OnClicked(WPARAM w, LPARAM l)
 void CollapseButton::OnPaint()
 {
     CButton::OnPaint();
-    Paint(false);
-}
-
-void CollapseButton::Paint(bool erase)
-{
     CRect rect;
     GetClientRect(&rect);
 

@@ -12,6 +12,8 @@ class CRect;
 class SongInfoListControl
 {
 public:
+    static int GetDisplaySwitchMessage();
+
     SongInfoListControl();
     ~SongInfoListControl();
 
@@ -28,6 +30,7 @@ public:
     void MoveWindow(const CRect& rect);
     bool HasBeenCreated();
     void SelectItem(int index);
+    bool IsReportView();
 
 private:
     friend class CMyListCtrl;

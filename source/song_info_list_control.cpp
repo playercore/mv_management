@@ -11,7 +11,6 @@
 #include "preview_dialog.h"
 #include "util.h"
 #include "preview_upload.h"
-#include "png_tool.h"
 #include "field_column_mapping.h"
 #include "jpeg_tool.h"
 #include "sql_control.h"
@@ -26,71 +25,6 @@ using boost::lexical_cast;
 
 namespace {
 enum CustomMessage { kUploadDone = WM_USER + 177 };
-
-void LoadNotificationImage(int id, CBitmap* target, CBitmap* mask)
-{
-    assert(!target->GetSafeHandle());
-    assert(!mask->GetSafeHandle());
-    HRSRC res = FindResource(NULL, MAKEINTRESOURCE(id), L"PNG");
-    if (!res)
-        return;
-
-    HGLOBAL handle = LoadResource(NULL, res);
-    unique_ptr<void, void (__stdcall *)(void*)> resData(
-        LockResource(handle),
-        reinterpret_cast<void (__stdcall *)(void*)>(UnlockResource));
-    void* decoded =
-        Png::LoadFromMemory(resData.get(), SizeofResource(NULL, res));
-    if (!decoded)
-        return;
-
-    unique_ptr<int8> autoRelease(reinterpret_cast<int8*>(decoded));
-    BITMAPINFOHEADER* header = reinterpret_cast<BITMAPINFOHEADER*>(decoded);
-    void* bits = NULL;
-    HBITMAP h = CreateDIBSection(NULL, reinterpret_cast<BITMAPINFO*>(header),
-                                 DIB_RGB_COLORS, &bits, NULL, 0);
-    if (!h || !bits)
-        return;
-
-    int width = header->biWidth;
-    int height = abs(header->biHeight);
-    memcpy(bits,
-           header + 1, (width * header->biBitCount + 31) / 32 * 4 * height);
-    target->Attach(h);
-
-    // Prepare mask.
-    BITMAP targetInfo;
-    if (sizeof(targetInfo) != target->GetBitmap(&targetInfo))
-        return;
-
-    const int targetWidth = targetInfo.bmWidth;
-    const int targetHeight = targetInfo.bmHeight;
-
-    mask->CreateBitmap(targetWidth, targetHeight, 1, 1, NULL);
-
-    CDC* dc = CDC::FromHandle(GetDC(NULL));
-    if (!dc)
-        return;
-
-    CDC targetDc;
-    targetDc.CreateCompatibleDC(dc);
-
-    CDC maskDc;
-    maskDc.CreateCompatibleDC(dc);
-
-    CGdiObject* o1 = targetDc.SelectObject(target);
-    CGdiObject* o2 = maskDc.SelectObject(mask);
-
-    targetDc.SetBkColor(RGB(255, 0, 255));
-    maskDc.BitBlt(0, 0, targetWidth, targetHeight, &targetDc, 0, 0, SRCCOPY);
-
-    targetDc.SetTextColor(RGB(255, 255, 255));
-    targetDc.SetBkColor(0);
-    targetDc.BitBlt(0, 0, targetWidth, targetHeight, &maskDc, 0, 0, SRCAND);
-
-    maskDc.SelectObject(o2);
-    targetDc.SelectObject(o1);
-}
 
 void LoadJPEG(CBitmap* bitmap, const wstring& jpegPath)
 {
@@ -363,7 +297,11 @@ void CMyListCtrl::OnNMDblclk(NMHDR* desc, LRESULT* result)
 {
     LPNMITEMACTIVATE itemActivate = reinterpret_cast<LPNMITEMACTIVATE>(desc);
     if (::GetKeyState(VK_CONTROL) < 0) {
-        if (GetStyle() & LVS_REPORT)
+        const bool reportView = GetStyle() & LVS_REPORT;
+        AfxGetMainWnd()->SendMessage(
+            SongInfoListControl::GetDisplaySwitchMessage(), reportView, 0);
+
+        if (reportView)
             ModifyStyle(LVS_REPORT, 0);
         else
             ModifyStyle(0, LVS_REPORT);
@@ -533,18 +471,13 @@ bool CMyListCtrl::PrintMark(CBitmap* target, bool succeeded)
     CDC markDc;
     markDc.CreateCompatibleDC(dc);
 
-    CDC maskDc;
-    maskDc.CreateCompatibleDC(dc);
-
     CGdiObject* o1 = previewDc.SelectObject(target);
     CGdiObject* o2 = markDc.SelectObject(mark);
-    CGdiObject* o3 = maskDc.SelectObject(mask);
 
     previewDc.MaskBlt(previewWidth - markWidth - 5,
                       previewHeight - markHeight - 5, markWidth,
                       markHeight, &markDc, 0, 0, *mask, 0, 0,
                       MAKEROP4(SRCPAINT, SRCCOPY));
-    maskDc.SelectObject(o3);
     markDc.SelectObject(o2);
     previewDc.SelectObject(o1);
     ReleaseDC(dc);
@@ -552,6 +485,11 @@ bool CMyListCtrl::PrintMark(CBitmap* target, bool succeeded)
 }
 
 //------------------------------------------------------------------------------
+int SongInfoListControl::GetDisplaySwitchMessage()
+{
+    return WM_USER + 178;
+}
+
 SongInfoListControl::SongInfoListControl()
     : impl_(new CMyListCtrl(this))
     , songIdToItem_()
@@ -670,6 +608,17 @@ bool SongInfoListControl::HasBeenCreated()
     return !!IsWindow(impl_->GetSafeHwnd());
 }
 
+void SongInfoListControl::SelectItem(int index)
+{
+    impl_->SetItemState(index, LVIS_SELECTED | LVIS_FOCUSED, 
+                        LVIS_SELECTED | LVIS_FOCUSED);
+}
+
+bool SongInfoListControl::IsReportView()
+{
+    return (impl_->GetStyle() & LVS_REPORT);
+}
+
 void SongInfoListControl::UpdateMapping()
 {
     const int itemCount = impl_->GetItemCount();
@@ -721,10 +670,4 @@ void SongInfoListControl::ConfirmPreviewTime(int songId)
     assert(songIdToItem_.end() != iter);
     if (songIdToItem_.end() != iter)
         iter->second.PreviewTime = iter->second.PreviewTimeToBe;
-}
-
-void SongInfoListControl::SelectItem(int index)
-{
-    impl_->SetItemState(index, LVIS_SELECTED | LVIS_FOCUSED, 
-                        LVIS_SELECTED | LVIS_FOCUSED);
 }

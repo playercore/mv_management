@@ -32,14 +32,16 @@ struct EnumChildrenParam
     HWND Excluded1;
     HWND Excluded2;
     HWND Excluded3;
+    HWND Excluded4;
     HWND SpecifiedParent;
     bool Hide;
 };
+
 BOOL __stdcall EnumAndShow(HWND h, LPARAM p)
 {
     EnumChildrenParam* param = reinterpret_cast<EnumChildrenParam*>(p);
     if ((h == param->Excluded1) || (h == param->Excluded2) ||
-        (h == param->Excluded3))
+        (h == param->Excluded3) || (h == param->Excluded4))
         return TRUE;
 
     if (GetParent(h) != param->SpecifiedParent)
@@ -85,7 +87,9 @@ CMVManagementDialog::CMVManagementDialog(CWnd* parent /*=NULL*/)
     , m_page(0)
     , m_curListSelItem(-1)
     , collapse_()
-    , verticalDist_(-1)
+    , tabTop_(-1)
+    , guideText1_()
+    , guideText2_()
 {
 	m_icon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -98,6 +102,8 @@ void CMVManagementDialog::DoDataExchange(CDataExchange* dataExch)
     DDX_Text(dataExch, IDC_EDIT_ID_TO, m_id_to);
     DDX_Control(dataExch, IDC_STATIC_GUIDE, guide_);
     DDX_Control(dataExch, IDC_BUTTON_LIST_ONLY, collapse_);
+    DDX_Control(dataExch, IDC_STATIC_GUIDE_TEXT_1, guideText1_);
+    DDX_Control(dataExch, IDC_STATIC_GUIDE_TEXT_2, guideText2_);
 }
 
 BEGIN_MESSAGE_MAP(CMVManagementDialog, CDialogEx)
@@ -118,6 +124,8 @@ BEGIN_MESSAGE_MAP(CMVManagementDialog, CDialogEx)
     ON_BN_CLICKED(IDC_BUTTON_ONLY_LIST,
                   &CMVManagementDialog::OnBnClickedButtonOnlyList)
     ON_WM_SIZE()
+    ON_MESSAGE(SongInfoListControl::GetDisplaySwitchMessage(),
+               &CMVManagementDialog::OnSongFullListDisplaySwitch)
 END_MESSAGE_MAP()
 
 
@@ -152,31 +160,7 @@ BOOL CMVManagementDialog::OnInitDialog()
 	SetIcon(m_icon, TRUE);			// 设置大图标
 	SetIcon(m_icon, FALSE);		// 设置小图标
 
-    CRect rect;
-    GetClientRect(&rect);
-    CRect tabInitRect;
-    tabInitRect.top = rect.top + 275;  
-    tabInitRect.bottom = rect.bottom - 20;  
-    tabInitRect.left = rect.left + 10;  
-    tabInitRect.right = rect.right - 10;  
-    m_tab.MoveWindow(tabInitRect);
-    HWND statusBar = CreateStatusWindow(WS_CHILD | WS_VISIBLE | WS_BORDER,
-        L"",//显示在状态栏上的信息
-        this->m_hWnd, //父窗口句柄
-        IDS_STATUS); //预定义的资源ID 
-
-    int pint[6]={ rect.Width() / 6, rect.Width() / 3, rect.Width() / 2, 
-        rect.Width() * 2 / 3, rect.Width() * 5 / 6, -1 };
-    ::SendMessage(statusBar, SB_SETPARTS, 6, (LPARAM)pint);
-    ::SendMessage(statusBar,SB_SETTEXT,1,(LPARAM)L"当前已审核的歌曲：0");
-    ::SendMessage(statusBar,SB_SETTEXT,2,(LPARAM)L"当天审核的歌曲：0");
-    ::SendMessage(statusBar,SB_SETTEXT,3,(LPARAM)L"还没有审核的歌曲：0");
-    ::SendMessage(statusBar,SB_SETTEXT,4,(LPARAM)L"一共有歌曲数：0");
-
-    guide_.ShowWindow(SW_HIDE);
-
-    // 获取本机IP
-    m_ip = GetLocalIP().c_str();
+    CreateStatusBar();
 
 	CButton* trackButton = reinterpret_cast<CButton*>(GetDlgItem(IDC_RADIO_0));
 	trackButton->SetCheck(1);
@@ -242,7 +226,7 @@ BOOL CMVManagementDialog::OnInitDialog()
 		{
 			sectionData = sectionData + buf[i];
 		} 
-		else 
+		else
 		{
 			if(sectionData != L"") 
 				typeCombox->AddString(sectionData);
@@ -250,11 +234,16 @@ BOOL CMVManagementDialog::OnInitDialog()
 			sectionData = L"";
 		}
 	}
+    
+    guideText1_.SetParent(&guide_);
+    guideText2_.SetParent(&guide_);
+    guide_.Init();
+    guide_.ShowWindow(SW_HIDE);
 
-	CRect rect;
+    CRect rect;
     m_tab.GetWindowRect(&rect);
     ScreenToClient(&rect);
-    verticalDist_ = rect.top;
+    tabTop_ = rect.top;
 
 	m_tab.InsertItem(0,L"所有歌曲");
 	m_tab.InsertItem(1,L"去除重复歌曲");
@@ -272,7 +261,7 @@ BOOL CMVManagementDialog::OnInitDialog()
         recordset->get_Fields(&fields);
         int num = fields->GetCount() - 8; //不显示最后8列
 
-        for (long i = 0;i < num; ++i)
+        for (long i = 0; i < num; ++i)
         {
             _variant_t index(i);    
             Field* field = NULL;
@@ -285,11 +274,9 @@ BOOL CMVManagementDialog::OnInitDialog()
 
         updateSongFullListByRecordset(recordset);
     }
-        
-    //m_splitterDialog.SetConnectionPtr(m_connection);
+
     GetClientRect(&rect);
     Layout(rect.Width(), rect.Height());
-  
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -305,10 +292,6 @@ void CMVManagementDialog::OnSysCommand(UINT id, LPARAM param)
 		CDialogEx::OnSysCommand(id, param);
 	}
 }
-
-// 如果向对话框添加最小化按钮，则需要下面的代码
-//  来绘制该图标。对于使用文档/视图模型的 MFC 应用程序，
-//  这将由框架自动完成。
 
 void CMVManagementDialog::OnPaint()
 {
@@ -368,10 +351,12 @@ void CMVManagementDialog::OnTcnSelchange(NMHDR *pNMHDR, LRESULT *pResult)
 		{
 			m_songFullList.ShowWindow(SW_SHOW);
 			m_splitterDialog.ShowWindow(SW_HIDE);
-//             int index = m_songFullList.GetSelectionMark();
             m_songFullList.DeleteAllItems();
             updateSongFullListByRecordset(recordSet);
             m_songFullList.SelectItem(0);
+            if (!m_songFullList.IsReportView())
+                guide_.ShowWindow(SW_SHOW);
+
 			break;
 		}
 		case 1:
@@ -380,6 +365,7 @@ void CMVManagementDialog::OnTcnSelchange(NMHDR *pNMHDR, LRESULT *pResult)
 			m_splitterDialog.ShowWindow(SW_SHOW);	
             updateSplitterWnd(recordSet);
             m_splitterDialog.SelectItem();
+            guide_.ShowWindow(SW_HIDE);
 			break;
 		}
 	}
@@ -595,7 +581,7 @@ void CMVManagementDialog::OnBnClickedButtonSubmit()
         query += L"'";
     }
     query += L",客户端ip地址 = '";
-    query += m_ip;
+    query += GetLocalIP().c_str();
     query += L"',提交时间 = '";
     query += curTime;
     query += L"',歌曲状态 = '已审阅' WHERE 歌曲编号 = ";
@@ -706,7 +692,7 @@ BOOL CMVManagementDialog::PreTranslateMessage(MSG* pMsg)
     if (pMsg->message == WM_KEYDOWN)
     {
         switch (pMsg->wParam)
-        {  
+        {
             case 'F':
             {
                 if(::GetKeyState(VK_CONTROL) < 0)
@@ -808,17 +794,24 @@ void CMVManagementDialog::OnBnClickedButtonOnlyList()
 {
     CWnd* listOnly = GetDlgItem(IDC_BUTTON_LIST_ONLY);
     CWnd* guide = GetDlgItem(IDC_STATIC_GUIDE);
-    if (!listOnly || !guide)
+    CWnd* statusBar = GetDlgItem(IDS_STATUS);
+    if (!listOnly || !guide || !statusBar)
         return;
 
     EnumChildrenParam p = {
         listOnly->GetSafeHwnd(), m_tab.GetSafeHwnd(), guide->GetSafeHwnd(),
-        GetSafeHwnd(), collapse_.IsCollapsed() };
+        statusBar->GetSafeHwnd(), GetSafeHwnd(), collapse_.IsCollapsed() };
     EnumChildWindows(GetSafeHwnd(), EnumAndShow, reinterpret_cast<LPARAM>(&p));
 
     CRect myRect;
     GetClientRect(&myRect);
     Layout(myRect.Width(), myRect.Height());
+}
+
+LRESULT CMVManagementDialog::OnSongFullListDisplaySwitch(WPARAM w, LPARAM l)
+{
+    guide_.ShowWindow(w ? SW_SHOW : SW_HIDE);
+    return 0;
 }
 
 void CMVManagementDialog::Layout(int cx, int cy)
@@ -838,22 +831,66 @@ void CMVManagementDialog::Layout(int cx, int cy)
     m_tab.GetWindowRect(&tabRect);
     ScreenToClient(&tabRect);
 
-    const int tabTop = collapse_.IsCollapsed() ? 25 : verticalDist_;
-    const int tabHeight = cy - tabTop - 12;
+    const int tabTop = collapse_.IsCollapsed() ? 25 : tabTop_;
+    const int tabHeight = cy - tabTop - 22;
     m_tab.SetWindowPos(NULL, tabRect.left, tabTop, cx - tabRect.left * 2,
                        tabHeight, SWP_NOZORDER);
 
-    // Lists.
+    // 'guide' control.
     CRect itemRect;
     m_tab.GetItemRect(0, &itemRect);
+    CRect guideRect;
+    guide_.GetWindowRect(&guideRect);
+    const int guideWidth = 400;
+    guide_.MoveWindow(cx - guideWidth - tabRect.left - 2, tabTop - 1,
+                      guideWidth, itemRect.Height());
+
+    CRect text1Rect;
+    guideText1_.GetWindowRect(&text1Rect);
+    const int guideTextTop = (itemRect.Height() - text1Rect.Height()) / 2;
+    guideText1_.MoveWindow(20, guideTextTop, text1Rect.Width(),
+                           text1Rect.Height());
+
+    CRect text2Rect;
+    guideText2_.GetWindowRect(&text2Rect);
+    guideText2_.MoveWindow(20 + text1Rect.Width() + 30 + 20, guideTextTop,
+                           text2Rect.Width(), text2Rect.Height());
+
+    // Lists.
     m_tab.GetClientRect(&tabRect);
     CRect fullListRect(1, itemRect.Height() + 3, tabRect.Width() - 3,
                        tabRect.Height() - 3);
     m_songFullList.MoveWindow(&fullListRect);
     m_splitterDialog.MoveWindow(&fullListRect);
 
-    // 'guide' control.
-    CWnd* guide = GetDlgItem(IDC_STATIC_GUIDE);
-    CRect guideRect;
-    guide->GetWindowRect(&guideRect);
+    // Status bar.
+    CWnd* statusBar = GetDlgItem(IDS_STATUS);
+    if (statusBar) {
+        CRect statusBarRect;
+        statusBar->GetWindowRect(&statusBarRect);
+        statusBar->MoveWindow(CRect(0, cy - statusBarRect.Height(), cx, cy));
+    }
+}
+
+void CMVManagementDialog::CreateStatusBar()
+{
+    CRect rect;
+    GetClientRect(&rect);
+    HWND statusBar = CreateStatusWindow(WS_CHILD | WS_VISIBLE | WS_BORDER,
+                                        L"", // 显示在状态栏上的信息
+                                        GetSafeHwnd(), // 父窗口句柄
+                                        IDS_STATUS); // 预定义的资源ID 
+
+    int parts[] = { rect.Width() / 6, rect.Width() / 3, rect.Width() / 2,
+        rect.Width() * 2 / 3, rect.Width() * 5 / 6, -1 };
+    ::SendMessage(statusBar, SB_SETPARTS, arraysize(parts),
+                  reinterpret_cast<LPARAM>(parts));
+    ::SendMessage(statusBar, SB_SETTEXT, 1,
+                  reinterpret_cast<LPARAM>(L"当前已审核的歌曲：0"));
+    ::SendMessage(statusBar, SB_SETTEXT, 2,
+                  reinterpret_cast<LPARAM>(L"当天审核的歌曲：0"));
+    ::SendMessage(statusBar, SB_SETTEXT, 3,
+                  reinterpret_cast<LPARAM>(L"还没有审核的歌曲：0"));
+    ::SendMessage(statusBar, SB_SETTEXT, 4,
+                  reinterpret_cast<LPARAM>(L"一共有歌曲数：0"));
 }
