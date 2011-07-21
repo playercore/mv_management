@@ -1,5 +1,6 @@
 #include "util.h"
 
+#include <cassert>
 #include <memory>
 
 #include "mfc_predefine.h"

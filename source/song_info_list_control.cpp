@@ -226,19 +226,17 @@ int CMyListCtrl::CompareFunction(LPARAM lParam1, LPARAM lParam2,
     findInfo.lParam = lParam2;
     int item2 = listCtrl->FindItem(&findInfo, -1);
 
-    wstring text1 =
-        listCtrl->control_->GetItemText(item1, listCtrl->lastSortColumn_);
-    wstring text2 =
-        listCtrl->control_->GetItemText(item2, listCtrl->lastSortColumn_);
+    CString text1 = listCtrl->GetItemText(item1, listCtrl->lastSortColumn_);
+    CString text2 = listCtrl->GetItemText(item2, listCtrl->lastSortColumn_);
 
     bool r;
     if (FieldColumnMapping::get()->GetColumnIndex(
         FieldColumnMapping::kSongFullListSongId) == listCtrl->lastSortColumn_) {
-        int id1 = lexical_cast<int>(text1.c_str());
-        int id2 = lexical_cast<int>(text2.c_str());
+        int id1 = lexical_cast<int>(text1.GetBuffer());
+        int id2 = lexical_cast<int>(text2.GetBuffer());
         r = (id1 < id2);
     } else {
-        r = less<wstring>()(text1, text2);
+        r = text1 < text2;
     }
 
     return listCtrl->isAscending_ ? !r : r;
@@ -330,10 +328,10 @@ LRESULT CMyListCtrl::OnUploadDone(WPARAM songId, LPARAM result)
         CSQLControl::get()->UpdatePreviewInfo(
             songId, static_cast<int>(info.PreviewTime));
 
-    wstring md5 = control_->GetItemText(
+    wstring md5 = GetItemText(
         info.ItemIndex,
         FieldColumnMapping::get()->GetColumnIndex(
-            FieldColumnMapping::kSongFullListMd5));
+            FieldColumnMapping::kSongFullListMd5)).GetBuffer();
 
     CBitmap preview;
     LoadJPEG(&preview, GetMvPreviewPath() + md5 + L".jpg");
@@ -397,21 +395,21 @@ void CMyListCtrl::PlayMV(int row)
 
 void CMyListCtrl::PreviewMV(int item)
 {
-    path mvPath(control_->GetItemText(
+    path mvPath(GetItemText(
         item,
         FieldColumnMapping::get()->GetColumnIndex(
-            FieldColumnMapping::kSongFullListFilePath)));
-    wstring md5 = control_->GetItemText(
+            FieldColumnMapping::kSongFullListFilePath)).GetBuffer());
+    wstring md5 = GetItemText(
         item,
         FieldColumnMapping::get()->GetColumnIndex(
-            FieldColumnMapping::kSongFullListMd5));
+            FieldColumnMapping::kSongFullListMd5)).GetBuffer();
     path previewPath(GetMvPreviewPath() + md5 + L".jpg");
     const int songId = GetItemData(item);
     const int previewTime = control_->GetPreviewTimeBySongId(songId);
-    wstring songName = control_->GetItemText(
+    wstring songName = GetItemText(
         item,
         FieldColumnMapping::get()->GetColumnIndex(
-            FieldColumnMapping::kSongFullListEditorRename));
+            FieldColumnMapping::kSongFullListEditorRename)).GetBuffer();
 
     PreviewDialog dialog(this, mvPath, previewPath, previewTime, songName);
     if (IDOK == dialog.DoModal()) {
@@ -556,20 +554,20 @@ wstring SongInfoListControl::GetItemText(int item, int subItem)
 {
     LVITEM itemDesc = {0};
     itemDesc.iSubItem = subItem;
-    wstring str;
     int len = 128;
     int result;
+    unique_ptr<wchar_t[]> buf;
     do
     {
         len *= 2;
-        str.resize(len);
+        buf.reset(new wchar_t[len]);
         itemDesc.cchTextMax = len;
-        itemDesc.pszText = &str[0];
+        itemDesc.pszText = buf.get();
         result = static_cast<int>(SendMessage(
             impl_->GetSafeHwnd(), LVM_GETITEMTEXT, item,
             reinterpret_cast<LPARAM>(&itemDesc)));
     } while (result >= len - 1);
-    return str;
+    return wstring(buf.get());
 }
 
 bool SongInfoListControl::SetItemText(int item, int subItem,
