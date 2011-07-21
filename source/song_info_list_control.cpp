@@ -347,6 +347,8 @@ LRESULT CMyListCtrl::OnUploadDone(WPARAM songId, LPARAM result)
                 RedrawItems(info.ItemIndex, info.ItemIndex);
             }
         }
+        AfxGetMainWnd()->SendMessage(
+            SongInfoListControl::GetPictureUploadDone(), 0, 0);
 
         return 0;
     } while (0);
@@ -668,4 +670,9 @@ void SongInfoListControl::ConfirmPreviewTime(int songId)
     assert(songIdToItem_.end() != iter);
     if (songIdToItem_.end() != iter)
         iter->second.PreviewTime = iter->second.PreviewTimeToBe;
+}
+
+int SongInfoListControl::GetPictureUploadDone()
+{
+    return WM_USER + 179;
 }

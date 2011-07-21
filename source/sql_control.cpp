@@ -239,9 +239,9 @@ _RecordsetPtr CSQLControl::SelectByLeftListView(wchar_t* name, wchar_t* oldHash)
     }
 }
 
-void CSQLControl::StatusStoreProc(int from, int to, int flag, int* curReviewed,
-                                  int* todayReviewed, int* needReview, 
-                                  int* totalSong)
+void CSQLControl::StatusStoreProcForSong(
+    int from, int to, int flag, int* curReviewed, int* todayReviewed, 
+    int* needReview,  int* totalSong)
 {
     try
     {
@@ -310,5 +310,72 @@ void CSQLControl::StatusStoreProc(int from, int to, int flag, int* curReviewed,
     }
  
 
+}
+
+void CSQLControl::StatusStoreProcForPic( 
+    int from, int to, int* curReviewed, int* todayReviewed, 
+    int* needReview, int* totalSong )
+{
+    try
+    {
+        m_connection->PutCursorLocation(adUseClient);
+        _CommandPtr command;
+        command.CreateInstance(__uuidof(Command));
+        command->ActiveConnection = m_connection;
+        command->CommandType = adCmdStoredProc;
+        command->CommandText = _bstr_t(L"dbo.GET_MV_DIAGRAM_CHECK_STATE");
+
+        string ip = WideCharToMultiByte(GetLocalIP());
+        _ParameterPtr paramIPIn = command->CreateParameter(
+            _bstr_t(L""), adVarChar, adParamInput, ip.length() + 1);
+        paramIPIn->Value = _variant_t(ip.c_str());
+        command->Parameters->Append(paramIPIn);
+
+        _ParameterPtr paramFromIn = command->CreateParameter(
+            _bstr_t(L""), adInteger, adParamInput, sizeof(int));
+        paramFromIn->Value = _variant_t(from);
+        command->Parameters->Append(paramFromIn);
+
+        _ParameterPtr paramToIn = command->CreateParameter(
+            _bstr_t(L""), adInteger, adParamInput, sizeof(int));
+        paramToIn->Value = _variant_t(to);
+        command->Parameters->Append(paramToIn);
+
+        _ParameterPtr paramCurReviewedOut = command->CreateParameter(
+            _bstr_t(L""), adInteger, adParamOutput, sizeof(int));
+
+        command->Parameters->Append(paramCurReviewedOut);
+
+        _ParameterPtr paramTotalSongOut = command->CreateParameter(
+            _bstr_t(L""), adInteger, adParamOutput, sizeof(int));
+
+        command->Parameters->Append(paramTotalSongOut);
+
+        _ParameterPtr paramNeedReviewOut = command->CreateParameter(
+            _bstr_t(L""), adInteger, adParamOutput, sizeof(int));
+
+        command->Parameters->Append(paramNeedReviewOut);
+
+        _ParameterPtr paramTodayReviewedOut = command->CreateParameter(
+            _bstr_t(L""), adInteger, adParamOutput, sizeof(int));
+
+        command->Parameters->Append(paramTodayReviewedOut);
+
+
+        _RecordsetPtr rs;
+        rs = command->Execute(NULL, NULL, adCmdStoredProc);
+
+        *curReviewed = (int)paramCurReviewedOut->Value;
+        *todayReviewed = (int)paramTodayReviewedOut->Value;
+        *needReview = (int)paramNeedReviewOut->Value;
+        *totalSong = (int)paramTotalSongOut->Value;
+
+        command.Detach();
+        m_connection->PutCursorLocation(adUseServer);
+    }
+    catch (_com_error e)
+    {
+        MessageBox(NULL, e.Description(), L"", MB_OK);
+    }
 }
 

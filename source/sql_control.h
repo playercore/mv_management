@@ -12,8 +12,11 @@ public:
     bool UpdateByString(wchar_t* str);
     bool UpdatePreviewInfo(int id, int previewTime);
     _RecordsetPtr SelectByLeftListView(wchar_t* name, wchar_t* oldHash);
-    void StatusStoreProc(int from, int to, int flag, int* curReviewed, 
+    void StatusStoreProcForSong(int from, int to, int flag, int* curReviewed, 
                          int* todayReviewed, int* needReview, int* totalSong);
+
+    void StatusStoreProcForPic(int from, int to, int* curReviewed, 
+        int* todayReviewed, int* needReview, int* totalSong);
 
     CSQLControl();
     ~CSQLControl();

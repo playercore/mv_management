@@ -126,6 +126,9 @@ BEGIN_MESSAGE_MAP(CMVManagementDialog, CDialogEx)
     ON_WM_SIZE()
     ON_MESSAGE(SongInfoListControl::GetDisplaySwitchMessage(),
                &CMVManagementDialog::OnSongFullListDisplaySwitch)
+    ON_MESSAGE(SongInfoListControl::GetPictureUploadDone(),
+               &CMVManagementDialog::OnPictureUnLoaded)
+
 END_MESSAGE_MAP()
 
 
@@ -609,41 +612,12 @@ void CMVManagementDialog::OnBnClickedButtonSubmit()
     {
         updateSongFullListByString(&item, isReplace);                  
     }
+
+    updateStatusForSong();
    
     _RecordsetPtr recordSet;
     simpleUpdate(recordSet);
     updateSplitterWnd(recordSet);
-
-    UpdateData(TRUE);
-    int from = _wtoi((LPTSTR)(LPCTSTR)m_id_from);
-    int to = _wtoi((LPTSTR)(LPCTSTR)m_id_to);
-    int curReviewed = 0;
-    int todayReviewed = 0;
-    int needReview = 0;
-    int totalSong = 0;
-    CSQLControl::get()->StatusStoreProc(from, to, m_filterType, &curReviewed,
-                                        &todayReviewed, &needReview, &totalSong);
-
-    wstringstream strCurReviewed;
-    strCurReviewed << L"当前已审核的歌曲：" << curReviewed;
-
-    wstringstream strTodayReviewed;
-    strTodayReviewed << L"当天审核的歌曲：" << todayReviewed;
-
-    wstringstream strNeedReview;
-    strNeedReview << L"还没有审核的歌曲：" << needReview;
-
-    wstringstream strTotalSong;
-    strTotalSong << L"一共有歌曲数：" << totalSong;
-
-    GetDlgItem(IDS_STATUS)->SendMessage(
-        SB_SETTEXT, 1, (LPARAM)strCurReviewed.str().c_str());
-    GetDlgItem(IDS_STATUS)->SendMessage(
-        SB_SETTEXT, 2, (LPARAM)strTodayReviewed.str().c_str());
-    GetDlgItem(IDS_STATUS)->SendMessage(
-        SB_SETTEXT, 3, (LPARAM)strNeedReview.str().c_str());
-    GetDlgItem(IDS_STATUS)->SendMessage(
-        SB_SETTEXT, 4, (LPARAM)strTotalSong.str().c_str());
 }
 
 
@@ -811,6 +785,12 @@ void CMVManagementDialog::OnBnClickedButtonOnlyList()
 LRESULT CMVManagementDialog::OnSongFullListDisplaySwitch(WPARAM w, LPARAM l)
 {
     guide_.ShowWindow(w ? SW_SHOW : SW_HIDE);
+
+    if (w)
+        updateStatusForPicture();
+    else
+        updateStatusForSong();
+
     return 0;
 }
 
@@ -893,4 +873,78 @@ void CMVManagementDialog::CreateStatusBar()
                   reinterpret_cast<LPARAM>(L"还没有审核的歌曲：0"));
     ::SendMessage(statusBar, SB_SETTEXT, 4,
                   reinterpret_cast<LPARAM>(L"一共有歌曲数：0"));
+}
+
+LRESULT CMVManagementDialog::OnPictureUnLoaded(WPARAM w, LPARAM l)
+{
+    updateStatusForPicture();
+    return 0;
+}
+
+void CMVManagementDialog::updateStatusForSong()
+{
+    UpdateData(TRUE);
+    int from = _wtoi((LPTSTR)(LPCTSTR)m_id_from);
+    int to = _wtoi((LPTSTR)(LPCTSTR)m_id_to);
+    int curReviewed = 0;
+    int todayReviewed = 0;
+    int needReview = 0;
+    int totalSong = 0;
+    CSQLControl::get()->StatusStoreProcForSong(from, to, m_filterType, 
+        &curReviewed, &todayReviewed, &needReview, &totalSong);
+
+    wstringstream strCurReviewed;
+    strCurReviewed << L"当前已审核的歌曲：" << curReviewed;
+
+    wstringstream strTodayReviewed;
+    strTodayReviewed << L"当天审核的歌曲：" << todayReviewed;
+
+    wstringstream strNeedReview;
+    strNeedReview << L"还没有审核的歌曲：" << needReview;
+
+    wstringstream strTotalSong;
+    strTotalSong << L"一共有歌曲数：" << totalSong;
+
+    GetDlgItem(IDS_STATUS)->SendMessage(
+        SB_SETTEXT, 1, (LPARAM)strCurReviewed.str().c_str());
+    GetDlgItem(IDS_STATUS)->SendMessage(
+        SB_SETTEXT, 2, (LPARAM)strTodayReviewed.str().c_str());
+    GetDlgItem(IDS_STATUS)->SendMessage(
+        SB_SETTEXT, 3, (LPARAM)strNeedReview.str().c_str());
+    GetDlgItem(IDS_STATUS)->SendMessage(
+        SB_SETTEXT, 4, (LPARAM)strTotalSong.str().c_str());
+}
+
+void CMVManagementDialog::updateStatusForPicture()
+{
+    UpdateData(TRUE);
+    int from = _wtoi((LPTSTR)(LPCTSTR)m_id_from);
+    int to = _wtoi((LPTSTR)(LPCTSTR)m_id_to);
+    int curReviewed = 0;
+    int todayReviewed = 0;
+    int needReview = 0;
+    int totalSong = 0;
+    CSQLControl::get()->StatusStoreProcForPic(from, to, &curReviewed,
+        &todayReviewed, &needReview, &totalSong);
+
+    wstringstream strCurReviewed;
+    strCurReviewed << L"当前已审核的缩略图：" << curReviewed;
+
+    wstringstream strTodayReviewed;
+    strTodayReviewed << L"当天审核的缩略图：" << todayReviewed;
+
+    wstringstream strNeedReview;
+    strNeedReview << L"还没有审核的缩略图：" << needReview;
+
+    wstringstream strTotalSong;
+    strTotalSong << L"一共有缩略图数：" << totalSong;
+
+    GetDlgItem(IDS_STATUS)->SendMessage(
+        SB_SETTEXT, 1, (LPARAM)strCurReviewed.str().c_str());
+    GetDlgItem(IDS_STATUS)->SendMessage(
+        SB_SETTEXT, 2, (LPARAM)strTodayReviewed.str().c_str());
+    GetDlgItem(IDS_STATUS)->SendMessage(
+        SB_SETTEXT, 3, (LPARAM)strNeedReview.str().c_str());
+    GetDlgItem(IDS_STATUS)->SendMessage(
+        SB_SETTEXT, 4, (LPARAM)strTotalSong.str().c_str());
 }

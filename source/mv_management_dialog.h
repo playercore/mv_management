@@ -57,8 +57,11 @@ private:
     void updateSongFullListByString(TListItem* item, bool isReplace);
     afx_msg void OnBnClickedButtonOnlyList();
     LRESULT OnSongFullListDisplaySwitch(WPARAM w, LPARAM l);
+    LRESULT OnPictureUnLoaded(WPARAM w, LPARAM l);
     void Layout(int cx, int cy);
     void CreateStatusBar();
+    void updateStatusForSong();
+    void updateStatusForPicture();
 
 	HICON m_icon;
 	SongInfoListControl m_songFullList;
