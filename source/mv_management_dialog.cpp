@@ -57,11 +57,10 @@ class CAboutDlg : public CDialogEx
 public:
 	CAboutDlg();
 
-// 对话框数据
 	enum { IDD = IDD_ABOUTBOX };
 
 	protected:
-	virtual void DoDataExchange(CDataExchange* dataExch);    // DDX/DDV 支持
+	virtual void DoDataExchange(CDataExchange* dataExch);
 
 // 实现
 protected:
@@ -126,21 +125,14 @@ BEGIN_MESSAGE_MAP(CMVManagementDialog, CDialogEx)
     ON_WM_SIZE()
     ON_MESSAGE(SongInfoListControl::GetDisplaySwitchMessage(),
                &CMVManagementDialog::OnSongFullListDisplaySwitch)
-    ON_MESSAGE(SongInfoListControl::GetPictureUploadDone(),
+    ON_MESSAGE(SongInfoListControl::GetPictureUploadedMessage(),
                &CMVManagementDialog::OnPictureUpLoaded)
-
 END_MESSAGE_MAP()
-
-
-// Cmv_managementDlg 消息处理程序
 
 BOOL CMVManagementDialog::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
-	// 将“关于...”菜单项添加到系统菜单中。
-
-	// IDM_ABOUTBOX 必须在系统命令范围内。
 	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
 	ASSERT(IDM_ABOUTBOX < 0xF000);
 
@@ -302,7 +294,8 @@ void CMVManagementDialog::OnPaint()
 	{
 		CPaintDC dc(this); // 用于绘制的设备上下文
 
-		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
+		SendMessage(WM_ICONERASEBKGND,
+                    reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
 		// 使图标在工作区矩形中居中
 		int cxIcon = GetSystemMetrics(SM_CXICON);
@@ -420,7 +413,6 @@ void CMVManagementDialog::OnClose()
     CDialogEx::OnClose();
 }
 
-
 void CMVManagementDialog::OnBnClickedButtonSearch()
 {
     // TODO: 在此添加控件通知处理程序代码
@@ -436,13 +428,16 @@ void CMVManagementDialog::OnBnClickedButtonSearch()
     m_songFullList.DeleteAllItems();
 
     updateSongFullListByRecordset(recordSet);
+    if (m_songFullList.IsReportView())
+        updateStatusForSong();
+    else
+        updateStatusForPicture();
 }
 
 LRESULT CMVManagementDialog::updateListSel(WPARAM waram, LPARAM param)
 {
     TListItem* item = (TListItem*)waram;
     m_curListSelItem = (int)param;
-    //m_curSelectedSongId = item->id;
     GetDlgItem(IDC_EDIT_SONG_NAME)->SetWindowText(item->Name);
     GetDlgItem(IDC_EDIT_NOTES)->SetWindowTextW(item->Notes);
     GetDlgItem(IDC_EDIT_NEW_HASH)->SetWindowText(item->NewHash);
@@ -613,13 +608,15 @@ void CMVManagementDialog::OnBnClickedButtonSubmit()
         updateSongFullListByString(&item, isReplace);                  
     }
 
-    updateStatusForSong();
+    if (m_songFullList.IsReportView())
+        updateStatusForSong();
+    else
+        updateStatusForPicture();
    
     _RecordsetPtr recordSet;
     simpleUpdate(recordSet);
     updateSplitterWnd(recordSet);
 }
-
 
 void CMVManagementDialog::OnCbnSelchangeComboFilterCondition()
 {
@@ -659,10 +656,8 @@ void CMVManagementDialog::OnSize(UINT nType, int cx, int cy)
     Layout(cx, cy);
 }
 
-
 BOOL CMVManagementDialog::PreTranslateMessage(MSG* pMsg)
 {
-    // TODO: 在此添加专用代码和/或调用基类
     if (pMsg->message == WM_KEYDOWN)
     {
         switch (pMsg->wParam)
@@ -785,7 +780,6 @@ void CMVManagementDialog::OnBnClickedButtonOnlyList()
 LRESULT CMVManagementDialog::OnSongFullListDisplaySwitch(WPARAM w, LPARAM l)
 {
     guide_.ShowWindow(w ? SW_SHOW : SW_HIDE);
-
     if (w)
         updateStatusForPicture();
     else
@@ -890,8 +884,9 @@ void CMVManagementDialog::updateStatusForSong()
     int todayReviewed = 0;
     int needReview = 0;
     int totalSong = 0;
-    CSQLControl::get()->StatusStoreProcForSong(from, to, m_filterType, 
-        &curReviewed, &todayReviewed, &needReview, &totalSong);
+    CSQLControl::get()->StatusStoreProcForSong(from, to, m_filterType,
+                                               &curReviewed, &todayReviewed,
+                                               &needReview, &totalSong);
 
     wstringstream strCurReviewed;
     strCurReviewed << L"当前已审核的歌曲：" << curReviewed;
@@ -925,7 +920,8 @@ void CMVManagementDialog::updateStatusForPicture()
     int needReview = 0;
     int totalSong = 0;
     CSQLControl::get()->StatusStoreProcForPic(from, to, &curReviewed,
-        &todayReviewed, &needReview, &totalSong);
+                                              &todayReviewed, &needReview,
+                                              &totalSong);
 
     wstringstream strCurReviewed;
     strCurReviewed << L"当前已审核的缩略图：" << curReviewed;

@@ -347,8 +347,9 @@ LRESULT CMyListCtrl::OnUploadDone(WPARAM songId, LPARAM result)
                 RedrawItems(info.ItemIndex, info.ItemIndex);
             }
         }
+
         AfxGetMainWnd()->SendMessage(
-            SongInfoListControl::GetPictureUploadDone(), 0, 0);
+            SongInfoListControl::GetPictureUploadedMessage(), 0, 0);
 
         return 0;
     } while (0);
@@ -488,6 +489,11 @@ bool CMyListCtrl::PrintMark(CBitmap* target, bool succeeded)
 int SongInfoListControl::GetDisplaySwitchMessage()
 {
     return WM_USER + 178;
+}
+
+int SongInfoListControl::GetPictureUploadedMessage()
+{
+    return WM_USER + 179;
 }
 
 SongInfoListControl::SongInfoListControl()
@@ -670,9 +676,4 @@ void SongInfoListControl::ConfirmPreviewTime(int songId)
     assert(songIdToItem_.end() != iter);
     if (songIdToItem_.end() != iter)
         iter->second.PreviewTime = iter->second.PreviewTimeToBe;
-}
-
-int SongInfoListControl::GetPictureUploadDone()
-{
-    return WM_USER + 179;
 }

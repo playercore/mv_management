@@ -27,7 +27,6 @@
     </ClInclude>
     <ClInclude Include="source\mv_management_app.h" />
     <ClInclude Include="source\mv_management_dialog.h" />
-    <ClInclude Include="stdafx.h" />
     <ClInclude Include="source\splitter_dialog.h" />
     <ClInclude Include="source\my_left_listview.h" />
     <ClInclude Include="source\list_item_define.h" />

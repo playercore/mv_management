@@ -13,7 +13,7 @@ class SongInfoListControl
 {
 public:
     static int GetDisplaySwitchMessage();
-    static int GetPictureUploadDone();
+    static int GetPictureUploadedMessage();
 
     SongInfoListControl();
     ~SongInfoListControl();
