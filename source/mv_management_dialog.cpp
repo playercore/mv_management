@@ -127,7 +127,7 @@ BEGIN_MESSAGE_MAP(CMVManagementDialog, CDialogEx)
     ON_MESSAGE(SongInfoListControl::GetDisplaySwitchMessage(),
                &CMVManagementDialog::OnSongFullListDisplaySwitch)
     ON_MESSAGE(SongInfoListControl::GetPictureUploadDone(),
-               &CMVManagementDialog::OnPictureUnLoaded)
+               &CMVManagementDialog::OnPictureUpLoaded)
 
 END_MESSAGE_MAP()
 
@@ -875,7 +875,7 @@ void CMVManagementDialog::CreateStatusBar()
                   reinterpret_cast<LPARAM>(L"一共有歌曲数：0"));
 }
 
-LRESULT CMVManagementDialog::OnPictureUnLoaded(WPARAM w, LPARAM l)
+LRESULT CMVManagementDialog::OnPictureUpLoaded(WPARAM w, LPARAM l)
 {
     updateStatusForPicture();
     return 0;
