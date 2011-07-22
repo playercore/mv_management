@@ -210,7 +210,7 @@ BOOL CMVManagementDialog::OnInitDialog()
 
 	typeCombox->AddString(L"多首歌曲组合");
 
-    for (int i = 0; i < vec.size(); i++)
+    for (size_t i = 0; i < vec.size(); i++)
     {
         typeCombox->AddString(vec[i].c_str());
     }

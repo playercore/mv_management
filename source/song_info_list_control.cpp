@@ -84,11 +84,13 @@ public:
 protected:
     DECLARE_MESSAGE_MAP()
 
-    afx_msg void OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult);
-    afx_msg void OnColumnClick(NMHDR* pNMHDR, LRESULT* pResult);
-    afx_msg void OnNMCustomdraw(NMHDR* pNMHDR, LRESULT* pResult);
-    afx_msg void OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnLvnItemchanged(NMHDR* desc, LRESULT* result);
+    afx_msg void OnColumnClick(NMHDR* desc, LRESULT* result);
+    afx_msg void OnNMCustomdraw(NMHDR* desc, LRESULT* result);
+    afx_msg void OnNMDblclk(NMHDR* desc, LRESULT* result);
+    afx_msg void OnRightClicked(NMHDR* desc, LRESULT* result);
     afx_msg LRESULT OnUploadDone(WPARAM songId, LPARAM result);
+    void Acknowledge(int songId, int result);
 
 private:
     friend class SongInfoListControl;
@@ -148,6 +150,7 @@ BEGIN_MESSAGE_MAP(CMyListCtrl, CListCtrl)
     ON_NOTIFY_REFLECT(LVN_COLUMNCLICK, &CMyListCtrl::OnColumnClick)
     ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, &CMyListCtrl::OnNMCustomdraw)
     ON_NOTIFY_REFLECT(NM_DBLCLK, &CMyListCtrl::OnNMDblclk)
+    ON_NOTIFY_REFLECT(NM_RCLICK, &CMyListCtrl::OnRightClicked)
     ON_MESSAGE(kUploadDone, &CMyListCtrl::OnUploadDone)
 END_MESSAGE_MAP()
 
@@ -319,7 +322,44 @@ void CMyListCtrl::OnNMDblclk(NMHDR* desc, LRESULT* result)
     *result = 0;
 }
 
+void CMyListCtrl::OnRightClicked(NMHDR* desc, LRESULT* result)
+{
+    NMITEMACTIVATE* itemActivate = reinterpret_cast<NMITEMACTIVATE*>(desc);
+    *result = 0;
+    if ((GetStyle() & LVS_REPORT) || (itemActivate->iItem < 0))
+        return;
+
+    const int songId = GetItemData(itemActivate->iItem);
+    const int previewTime = control_->GetPreviewTimeBySongId(songId);
+    if (previewTime >= 0) {
+        MessageBox(L"已审核", L"提示", MB_ICONINFORMATION | MB_OK);
+        return;
+    }
+
+    CMenu m;
+    m.LoadMenu(IDR_MENU_PREVIEW);
+    CMenu* s = m.GetSubMenu(0);
+    if (!s)
+        return;
+
+    CPoint pos;
+    GetCursorPos(&pos);
+    const int r = s->TrackPopupMenu(
+        TPM_LEFTALIGN | TPM_RETURNCMD | TPM_NONOTIFY, pos.x, pos.y, this);
+    if (r != ID_PREVIEW_ACKNOWLEDGE)
+        return;
+
+    control_->SetPreviewTimeToBeBySongId(songId, 6000);
+    Acknowledge(songId, 0);
+}
+
 LRESULT CMyListCtrl::OnUploadDone(WPARAM songId, LPARAM result)
+{
+    Acknowledge(songId, result);
+    return 0;
+}
+
+void CMyListCtrl::Acknowledge(int songId, int result)
 {
     control_->ConfirmPreviewTime(songId);
     SongInfo info = {0};
@@ -334,6 +374,8 @@ LRESULT CMyListCtrl::OnUploadDone(WPARAM songId, LPARAM result)
         FieldColumnMapping::get()->GetColumnIndex(
             FieldColumnMapping::kSongFullListMd5)).GetBuffer();
 
+    // Note that it's not possible that reusing any of the bitmaps already in
+    // the image list.
     CBitmap preview;
     LoadJPEG(&preview, GetMvPreviewPath() + md5 + L".jpg");
 
@@ -352,15 +394,14 @@ LRESULT CMyListCtrl::OnUploadDone(WPARAM songId, LPARAM result)
         AfxGetMainWnd()->SendMessage(
             SongInfoListControl::GetPictureUploadedMessage(), 0, 0);
 
-        return 0;
+        return;
     } while (0);
 
-    const bool succeeded = !result;
+    const bool succeeded = (!result && updateSucceeded);
     wstringstream s;
-    s << L"预览图" << songId << L"上传" << (succeeded ? L"成功" : L"失败");
+    s << L"预览图" << songId << L"审核" << (succeeded ? L"成功" : L"失败");
     MessageBox(s.str().c_str(), succeeded ? L"信息" : L"错误",
                succeeded ? MB_OK | MB_ICONINFORMATION : MB_OK | MB_ICONERROR);
-    return 0;
 }
 
 void CMyListCtrl::PlayMV(int row)
