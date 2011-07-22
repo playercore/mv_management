@@ -58,7 +58,7 @@ BOOL CSplitterDialog::OnInitDialog()
     _RecordsetPtr recordset = CSQLControl::get()->BaseSelect();
     Fields* fields;
     recordset->get_Fields(&fields);
-    int num = fields->GetCount() - 8; //不显示最后8列
+    int num = fields->GetCount() - 9; //不显示最后9列
 
     for (long i = 0;i < num; ++i)
     {
@@ -123,7 +123,7 @@ void CSplitterDialog::Search(_RecordsetPtr recordset)
 {
     Fields* fields;
     recordset->get_Fields(&fields);
-    int num = fields->GetCount() - 8; //不显示最后8列
+    int num = fields->GetCount() - 9; //不显示最后9列
 
     CListView* listView = (CListView*)m_wndSplitter.GetPane(0,0);
     CListCtrl& listCtrl = listView->GetListCtrl();
@@ -169,7 +169,7 @@ LRESULT CSplitterDialog::updateLeftListSel(WPARAM waram, LPARAM param)
 
     Fields* fields;
     recordset->get_Fields(&fields);
-    int num = fields->GetCount() - 8; //不显示最后8列
+    int num = fields->GetCount() - 9; //不显示最后9列
 
     CListView* listView = (CListView*)m_wndSplitter.GetPane(0,1);
     CListCtrl& listCtrl = listView->GetListCtrl();

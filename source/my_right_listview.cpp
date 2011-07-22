@@ -5,6 +5,7 @@
 #include "list_item_define.h"
 #include "common.h"
 #include "field_column_mapping.h"
+#include "ini_control.h"
 
 using std::wstring;
 
@@ -118,15 +119,7 @@ void CMyRightListView::OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult)
     LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
 
     // TODO: 在此添加控件通知处理程序代码
-    wstring path;
-    wchar_t curPath[MAX_PATH + 1];
-    GetCurrentDirectory(MAX_PATH,curPath);
-    path = curPath;
-    path += L"\\config.ini";
-    wchar_t buf[32767];
-    int len = GetPrivateProfileString(L"setup", L"kmpPath", L"", buf, 32767, 
-        path.c_str());
-    CString cmd = buf;
+    CString cmd = CIniControl::get()->GetKmplayer().c_str();
     cmd += L"KMPlayer.exe";
     CString str;
     str += L"\"";

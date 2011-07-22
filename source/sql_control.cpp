@@ -6,6 +6,7 @@
 
 #include "common.h"
 #include "util.h"
+#include "ini_control.h"
 
 using std::wstring;
 using std::string;
@@ -22,21 +23,10 @@ bool CSQLControl::initConnection()
     {   
         m_connection.CreateInstance(__uuidof(Connection));
 
-        wchar_t buf1[32767];
-        int len1 = GetPrivateProfileString(L"databaseSetup", L"ServerIP", L"0", 
-            buf1, 32767, path.c_str());
-        wstring server = buf1;
-        len1 = GetPrivateProfileString(L"databaseSetup", L"UserName", L"0", 
-            buf1, 32767, path.c_str());
-        wstring userName = buf1;
-
-        len1 = GetPrivateProfileString(L"databaseSetup", L"Password", L"0", 
-            buf1, 32767, path.c_str());
-        wstring password = buf1;
-
-        len1 = GetPrivateProfileString(L"databaseSetup", L"DatabaseName", L"0", 
-            buf1, 32767, path.c_str());
-        wstring databaseName = buf1;
+        wstring server = CIniControl::get()->GetServerIP();
+        wstring userName = CIniControl::get()->GetUserName();
+        wstring password = CIniControl::get()->GetPassword();
+        wstring databaseName = CIniControl::get()->GetDatabaseName();
 
         wstring strSQL = L"Driver={SQL Server};Server=";
         strSQL += server;
@@ -54,9 +44,7 @@ bool CSQLControl::initConnection()
     {
         return false;
     }
-
-
-
+    
     return true;
 }
 
@@ -70,7 +58,7 @@ _RecordsetPtr CSQLControl::BaseSelect(int idFrom, int idTo, int flag)
     wstring query = L"SELECT 歌曲编号,文件路径,旧哈希值,编辑重命名,是否有交错,"
         L"歌曲状态,备注,原唱音轨,歌曲类型,新哈希值,总音轨数,画质级别,"
         L"客户端ip地址,提交时间,图片生成ip地址,图片编号,截图时间,图片备注,"   
-        L"图片上传时间,图片路径 FROM CHECKED_ENCODE_FILE_INFO WHERE 1 = 1";
+        L"图片上传时间,图片路径,序号 FROM CHECKED_ENCODE_FILE_INFO WHERE 1 = 1";
 
     if ((idFrom != -1) && (idTo != -1))
     {

@@ -184,7 +184,7 @@ void CSearchDialog::OnBnClickedOk()
 
     if (useID)
     {
-        m_query += L" AND ¸èÇú±àºÅ BETWEEN ";
+        m_query += L" AND ÐòºÅ BETWEEN ";
         CString str;
         GetDlgItem(IDC_EDIT_IDFROM1)->GetWindowText(str);
         m_query += str;

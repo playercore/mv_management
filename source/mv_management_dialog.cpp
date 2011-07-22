@@ -5,6 +5,7 @@
 #include <string>
 #include <memory>
 #include <vld.h>
+#include <vector>
 
 #include <boost/filesystem.hpp>
 #include "afxdialogex.h"
@@ -14,12 +15,14 @@
 #include "mv_management_app.h"
 #include "search_dialog.h"
 #include "sql_control.h"
+#include "ini_control.h"
 #include "common.h"
 #include "util.h"
 
 using std::wstring;
 using std::unique_ptr;
 using std::wstringstream;
+using std::vector;
 using boost::filesystem3::path;
 
 #ifdef _DEBUG
@@ -194,42 +197,24 @@ BOOL CMVManagementDialog::OnInitDialog()
 	GetCurrentDirectory(MAX_PATH,curPath);
 	path = curPath;
 	path += L"\\config.ini";
+    CIniControl::get()->Init(path.c_str());
 
-    wchar_t buf[32767];
-    int len = GetPrivateProfileString(L"ID", L"START", L"0", buf, 32767, 
-                                      path.c_str());
-    m_id_from = buf;
-
-    len = GetPrivateProfileString(L"ID", L"END", L"0", buf, 32767, 
-                                  path.c_str());
-    m_id_to = buf;
+    m_id_from = CIniControl::get()->GetIDFrom().c_str();
+    m_id_to = CIniControl::get()->GetIDTo().c_str();
     UpdateData(FALSE);
 
-	buf[32767];
-	len = GetPrivateProfileString(L"type", NULL, L"", buf, 32767, 
-									  path.c_str());
+    vector<wstring> vec = CIniControl::get()->GetMVType();
 
 	CComboBox* typeCombox = 
 		reinterpret_cast<CComboBox*>(GetDlgItem(IDC_COMBO_MV_TYPE));
 
 	typeCombox->AddString(L"多首歌曲组合");
 
-	CString sectionData;
-	for(int i = 0; i < len; i++)
-	{
-		if(buf[i] != '\0') 
-		{
-			sectionData = sectionData + buf[i];
-		} 
-		else
-		{
-			if(sectionData != L"") 
-				typeCombox->AddString(sectionData);
-			
-			sectionData = L"";
-		}
-	}
-    
+    for (int i = 0; i < vec.size(); i++)
+    {
+        typeCombox->AddString(vec[i].c_str());
+    }
+   
     guideText1_.SetParent(&guide_);
     guideText2_.SetParent(&guide_);
     guide_.Init();
@@ -254,7 +239,7 @@ BOOL CMVManagementDialog::OnInitDialog()
     {
         Fields* fields;
         recordset->get_Fields(&fields);
-        int num = fields->GetCount() - 8; //不显示最后8列
+        int num = fields->GetCount() - 9; //不显示最后9列
 
         for (long i = 0; i < num; ++i)
         {
@@ -372,7 +357,7 @@ void CMVManagementDialog::updateSongFullListByRecordset(_RecordsetPtr recordset)
 {
     Fields* fields;
     recordset->get_Fields(&fields);
-    int num = fields->GetCount() - 8; //不显示最后8列
+    int num = fields->GetCount() - 9; //不显示最后9列
 
     int row = 0;
     m_songFullList.DeleteAllItems();

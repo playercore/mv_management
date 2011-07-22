@@ -14,6 +14,7 @@
     <ClCompile Include="source\collapse_button.cpp" />
     <ClCompile Include="source\field_column_mapping.cpp" />
     <ClCompile Include="source\guide_control.cpp" />
+    <ClCompile Include="source\ini_control.cpp" />
     <ClCompile Include="source\jpeg_tool.cpp" />
     <ClCompile Include="source\mv_management_app.cpp" />
     <ClCompile Include="source\mv_management_dialog.cpp" />
@@ -34,6 +35,7 @@
     <ClInclude Include="source\collapse_button.h" />
     <ClInclude Include="source\field_column_mapping.h" />
     <ClInclude Include="source\guide_control.h" />
+    <ClInclude Include="source\ini_control.h" />
     <ClInclude Include="source\jpeg_tool.h" />
     <ClInclude Include="source\list_item_define.h" />
     <ClInclude Include="source\mfc_predefine.h" />

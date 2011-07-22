@@ -18,6 +18,7 @@
     <ClCompile Include="source\sql_control.cpp" />
     <ClCompile Include="source\collapse_button.cpp" />
     <ClCompile Include="source\guide_control.cpp" />
+    <ClCompile Include="source\ini_control.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\targetver.h" />
@@ -43,6 +44,7 @@
     <ClInclude Include="source\sql_control.h" />
     <ClInclude Include="source\collapse_button.h" />
     <ClInclude Include="source\guide_control.h" />
+    <ClInclude Include="source\ini_control.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="%28resource%29">

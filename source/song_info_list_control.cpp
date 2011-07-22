@@ -14,6 +14,7 @@
 #include "field_column_mapping.h"
 #include "jpeg_tool.h"
 #include "sql_control.h"
+#include "ini_control.h"
 
 using std::wstring;
 using std::wstringstream;
@@ -364,15 +365,7 @@ LRESULT CMyListCtrl::OnUploadDone(WPARAM songId, LPARAM result)
 
 void CMyListCtrl::PlayMV(int row)
 {
-    wstring path;
-    wchar_t curPath[MAX_PATH + 1];
-    GetCurrentDirectory(MAX_PATH,curPath);
-    path = curPath;
-    path += L"\\config.ini";
-    wchar_t buf[32767];
-    int len = GetPrivateProfileString(L"setup", L"kmpPath", L"", buf, 32767, 
-        path.c_str());
-    CString cmd = buf;
+    CString cmd = CIniControl::get()->GetKmplayer().c_str();
     cmd += L"KMPlayer.exe";
     CString str;
     str += L"\"";
