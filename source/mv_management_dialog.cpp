@@ -683,6 +683,10 @@ void CMVManagementDialog::simpleUpdate(_RecordsetPtr& recordset)
     CString query = GetBaseQuery();
     int idFrom = _wtoi((LPTSTR)(LPCTSTR)m_id_from);
     int idTo = _wtoi((LPTSTR)(LPCTSTR)m_id_to);
+
+    CIniControl::get()->SetIDFrom(m_id_from.GetBuffer());
+    CIniControl::get()->SetIDTo(m_id_to.GetBuffer());
+
     m_filterType = 
         ((CComboBox*)GetDlgItem(IDC_COMBO_FILTER_CONDITION))->GetCurSel();
 
