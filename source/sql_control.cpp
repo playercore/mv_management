@@ -64,7 +64,7 @@ _RecordsetPtr CSQLControl::BaseSelect(int idFrom, int idTo, int flag)
     {
         wstring strIdFrom = lexical_cast<wstring>(idFrom);
         wstring strIdTo = lexical_cast<wstring>(idTo);
-        query += L" and ¸èÇú±àºÅ between ";
+        query += L" and ÐòºÅ between ";
         query += strIdFrom + L" and ";
         query += strIdTo;
     }
