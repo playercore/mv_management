@@ -1,7 +1,5 @@
 #include "sql_control.h"
 
-#include <string>
-
 #include <boost/lexical_cast.hpp>
 
 #include "common.h"
@@ -11,6 +9,14 @@
 using std::wstring;
 using std::string;
 using boost::lexical_cast;
+
+wstring CSQLControl::GetBaseQuery()
+{
+    return wstring(L"SELECT 歌曲编号,文件路径,旧哈希值,编辑重命名,是否有交错,歌曲状态,"
+        L"备注,原唱音轨,歌曲类型,新哈希值,总音轨数,画质级别,客户端ip地址,提交时间,"
+        L"图片生成ip地址,图片编号,截图时间,图片备注,图片上传时间,图片路径,序号"
+        L" FROM CHECKED_ENCODE_FILE_INFO WHERE 1 = 1");
+}
 
 bool CSQLControl::initConnection()
 {
@@ -55,10 +61,7 @@ void CSQLControl::closeConnection()
 
 _RecordsetPtr CSQLControl::BaseSelect(int idFrom, int idTo, int flag)
 {
-    wstring query = L"SELECT 歌曲编号,文件路径,旧哈希值,编辑重命名,是否有交错,"
-        L"歌曲状态,备注,原唱音轨,歌曲类型,新哈希值,总音轨数,画质级别,"
-        L"客户端ip地址,提交时间,图片生成ip地址,图片编号,截图时间,图片备注,"   
-        L"图片上传时间,图片路径,序号 FROM CHECKED_ENCODE_FILE_INFO WHERE 1 = 1";
+    wstring query = GetBaseQuery();
 
     if ((idFrom != -1) && (idTo != -1))
     {
@@ -102,7 +105,7 @@ CSQLControl::~CSQLControl()
     closeConnection();
 }
 
-_RecordsetPtr CSQLControl::SelectByString(wchar_t* str)
+_RecordsetPtr CSQLControl::SelectByString(const wchar_t* str)
 {
     try
     {

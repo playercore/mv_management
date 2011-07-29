@@ -3,7 +3,8 @@
 
 #include <string>
 
-const wchar_t* GetBaseQuery();
+enum { NUM_COLUMNS_EXCLUDED = 9 };
+enum { COLUMN_WIDTH = 80 };
 
 std::wstring GetLocalIP();
 

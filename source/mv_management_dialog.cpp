@@ -239,7 +239,7 @@ BOOL CMVManagementDialog::OnInitDialog()
     {
         Fields* fields;
         recordset->get_Fields(&fields);
-        int num = fields->GetCount() - 9; //不显示最后9列
+        int num = fields->GetCount() - NUM_COLUMNS_EXCLUDED;
 
         for (long i = 0; i < num; ++i)
         {
@@ -249,9 +249,12 @@ BOOL CMVManagementDialog::OnInitDialog()
             _bstr_t name;
             name = p->GetName();
             CString strName =  (LPCTSTR)name;
-            m_songFullList.InsertColumn(i, strName, LVCFMT_LEFT , 80, i);
+            m_songFullList.InsertColumn(i, strName, LVCFMT_LEFT , COLUMN_WIDTH,
+                                        i);
         }
 
+        m_songFullList.InsertColumn(num, L"已审核缩略图", LVCFMT_LEFT,
+                                    COLUMN_WIDTH, num);
         updateSongFullListByRecordset(recordset);
     }
 
@@ -357,7 +360,7 @@ void CMVManagementDialog::updateSongFullListByRecordset(_RecordsetPtr recordset)
 {
     Fields* fields;
     recordset->get_Fields(&fields);
-    int num = fields->GetCount() - 9; //不显示最后9列
+    int num = fields->GetCount() - NUM_COLUMNS_EXCLUDED;
 
     int row = 0;
     m_songFullList.DeleteAllItems();
@@ -377,15 +380,14 @@ void CMVManagementDialog::updateSongFullListByRecordset(_RecordsetPtr recordset)
         for (long i = 1;i < num; ++i)
         {
             t = recordset->GetCollect(i);
-
-            if (t.vt != VT_NULL)
-                songIdInText = (LPWSTR)(_bstr_t)t;
-            else
-                songIdInText = L"";
-
-            m_songFullList.SetItemText(row, i, songIdInText);
+            m_songFullList.SetItemText(
+                row, i,
+                (t.vt != VT_NULL) ?
+                    static_cast<wchar_t*>(static_cast<_bstr_t>(t)) : L"");
         }
 
+        t = recordset->GetCollect(18L);
+        m_songFullList.SetItemText(row, num, (t.vt != VT_NULL) ? L"是" : L"否");
         recordset->MoveNext();
         row++;
     }
@@ -654,11 +656,9 @@ BOOL CMVManagementDialog::PreTranslateMessage(MSG* pMsg)
                     CSearchDialog dlg;
                     if (dlg.DoModal() == IDOK)
                     {
-                        CString query = dlg.GetQuery();
-
-                        _RecordsetPtr recordSet = 
+                        _RecordsetPtr recordSet =
                             CSQLControl::get()->SelectByString(
-                                (LPTSTR)(LPCTSTR)query);
+                                dlg.GetQuery().c_str());
 
                         if (!recordSet)
                             return FALSE;
@@ -680,7 +680,6 @@ BOOL CMVManagementDialog::PreTranslateMessage(MSG* pMsg)
 void CMVManagementDialog::simpleUpdate(_RecordsetPtr& recordset)
 {
     UpdateData(TRUE);
-    CString query = GetBaseQuery();
     int idFrom = _wtoi((LPTSTR)(LPCTSTR)m_id_from);
     int idTo = _wtoi((LPTSTR)(LPCTSTR)m_id_to);
 

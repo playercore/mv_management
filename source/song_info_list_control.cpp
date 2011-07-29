@@ -26,6 +26,7 @@ using boost::lexical_cast;
 
 namespace {
 enum CustomMessage { kUploadDone = WM_USER + 177 };
+enum { kDefaultPreviewTime = 6000 };
 
 void LoadJPEG(CBitmap* bitmap, const wstring& jpegPath)
 {
@@ -349,7 +350,7 @@ void CMyListCtrl::OnRightClicked(NMHDR* desc, LRESULT* result)
     if (r != ID_PREVIEW_ACKNOWLEDGE)
         return;
 
-    control_->SetPreviewTimeToBeBySongId(songId, 6000);
+    control_->SetPreviewTimeToBeBySongId(songId, kDefaultPreviewTime);
     Acknowledge(songId, 0);
 }
 
@@ -448,7 +449,9 @@ void CMyListCtrl::PreviewMV(int item)
         FieldColumnMapping::get()->GetColumnIndex(
             FieldColumnMapping::kSongFullListEditorRename)).GetBuffer();
 
-    PreviewDialog dialog(this, mvPath, previewPath, previewTime, songName);
+    PreviewDialog dialog(this, mvPath, previewPath,
+                         previewTime < 0 ? kDefaultPreviewTime : previewTime,
+                         songName);
     if (IDOK == dialog.DoModal()) {
         std::shared_ptr<MyUploadCallback> callback(
             std::make_shared<MyUploadCallback>(this));

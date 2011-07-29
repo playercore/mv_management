@@ -58,7 +58,7 @@ BOOL CSplitterDialog::OnInitDialog()
     _RecordsetPtr recordset = CSQLControl::get()->BaseSelect();
     Fields* fields;
     recordset->get_Fields(&fields);
-    int num = fields->GetCount() - 9; //不显示最后9列
+    int num = fields->GetCount() - NUM_COLUMNS_EXCLUDED;
 
     for (long i = 0;i < num; ++i)
     {
@@ -69,8 +69,8 @@ BOOL CSplitterDialog::OnInitDialog()
         name = p->GetName();
         CString strName =  (LPCTSTR)name;
 
-        leftListCtrl.InsertColumn(i, strName, LVCFMT_LEFT , 80, i);
-        rightListCtrl.InsertColumn(i, strName, LVCFMT_LEFT , 80, i);
+        leftListCtrl.InsertColumn(i, strName, LVCFMT_LEFT , COLUMN_WIDTH, i);
+        rightListCtrl.InsertColumn(i, strName, LVCFMT_LEFT , COLUMN_WIDTH, i);
     }
 
     // TODO:  在此添加额外的初始化
@@ -123,7 +123,7 @@ void CSplitterDialog::Search(_RecordsetPtr recordset)
 {
     Fields* fields;
     recordset->get_Fields(&fields);
-    int num = fields->GetCount() - 9; //不显示最后9列
+    int num = fields->GetCount() - NUM_COLUMNS_EXCLUDED;
 
     CListView* listView = (CListView*)m_wndSplitter.GetPane(0,0);
     CListCtrl& listCtrl = listView->GetListCtrl();
@@ -169,7 +169,7 @@ LRESULT CSplitterDialog::updateLeftListSel(WPARAM waram, LPARAM param)
 
     Fields* fields;
     recordset->get_Fields(&fields);
-    int num = fields->GetCount() - 9; //不显示最后9列
+    int num = fields->GetCount() - NUM_COLUMNS_EXCLUDED;
 
     CListView* listView = (CListView*)m_wndSplitter.GetPane(0,1);
     CListCtrl& listCtrl = listView->GetListCtrl();

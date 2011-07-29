@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "mfc_predefine.h"
 #include "resource/resource.h" // main symbols
 
@@ -12,7 +14,7 @@ class CSearchDialog : public CDialogEx
 public:
 	CSearchDialog(CWnd* pParent = NULL);   // 标准构造函数
 	virtual ~CSearchDialog();
-    CString GetQuery();
+    std::wstring GetQuery();
 
 // 对话框数据
 	enum { IDD = IDD_DIALOG_SEARCH };
@@ -47,5 +49,5 @@ protected:
     CString m_quality;
     CString m_idFrom;
     CString m_idTo;
-    CString m_query;
+    std::wstring m_query;
 };

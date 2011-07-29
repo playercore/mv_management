@@ -1,11 +1,13 @@
-// search_dialog.cpp : 实现文件
-//
 #include "search_dialog.h"
+
+#include <boost/lexical_cast.hpp>
+
 #include "afxdialogex.h"
 #include "common.h"
+#include "sql_control.h"
 
-
-// CSearchDialog 对话框
+using std::wstring;
+using boost::lexical_cast;
 
 IMPLEMENT_DYNAMIC(CSearchDialog, CDialogEx)
 
@@ -100,13 +102,13 @@ void CSearchDialog::OnBnClickedOk()
         !useTrackType && !useMVType && !useNewHash && !useQuality && !useID)
         return CDialogEx::OnOK();
 
-    m_query = GetBaseQuery();
+    m_query = CSQLControl::GetBaseQuery();
     if (useOldHash)
     {
           m_query += L" AND 旧哈希值 = '";
           CString str;
           GetDlgItem(IDC_EDIT_OLDHASH1)->GetWindowText(str);
-          m_query += str;
+          m_query += str.GetBuffer();
           m_query += L"'";
     }
 
@@ -115,7 +117,7 @@ void CSearchDialog::OnBnClickedOk()
         m_query += L" AND 编辑重命名 LIKE '%";
         CString str;
         GetDlgItem(IDC_EDIT_NAME1)->GetWindowText(str);
-        m_query += str;
+        m_query += str.GetBuffer();
         m_query += L"%'";
     }
 
@@ -124,7 +126,7 @@ void CSearchDialog::OnBnClickedOk()
         m_query += L" AND 是否有交错 = '";
         CString str;
         GetDlgItem(IDC_COMBO_INTERLACE1)->GetWindowText(str);
-        m_query += str;
+        m_query += str.GetBuffer();
         m_query += L"'";
     }
 
@@ -133,7 +135,7 @@ void CSearchDialog::OnBnClickedOk()
         m_query += L" AND 歌曲状态 = '";
         CString str;
         GetDlgItem(IDC_EDIT_STATE1)->GetWindowText(str);
-        m_query += str;
+        m_query += str.GetBuffer();
         m_query += L"'";
     }
 
@@ -142,7 +144,7 @@ void CSearchDialog::OnBnClickedOk()
         m_query += L" AND 备注 = '";
         CString str;
         GetDlgItem(IDC_EDIT_NOTES1)->GetWindowText(str);
-        m_query += str;
+        m_query += str.GetBuffer();
         m_query += L"'";
     }
 
@@ -151,7 +153,7 @@ void CSearchDialog::OnBnClickedOk()
         m_query += L" AND 原唱音轨 = '";
         CString str;
         GetDlgItem(IDC_COMBO_TRACKTYPE1)->GetWindowText(str);
-        m_query += str;
+        m_query += str.GetBuffer();
         m_query += L"'";
     }
 
@@ -160,7 +162,7 @@ void CSearchDialog::OnBnClickedOk()
         m_query += L" AND 歌曲类型 = '";
         CString str;
         GetDlgItem(IDC_COMBO_MVTYPE1)->GetWindowText(str);
-        m_query += str;
+        m_query += str.GetBuffer();
         m_query += L"'";
     }
 
@@ -169,7 +171,7 @@ void CSearchDialog::OnBnClickedOk()
         m_query += L" AND 新哈希值 = '";
         CString str;
         GetDlgItem(IDC_EDIT_NEWHASH1)->GetWindowText(str);
-        m_query += str;
+        m_query += str.GetBuffer();
         m_query += L"'";
     }
 
@@ -177,9 +179,7 @@ void CSearchDialog::OnBnClickedOk()
     {
         m_query += L" AND 画质级别 = ";
         int index = ((CComboBox*)(GetDlgItem(IDC_COMBO_QUALITY1)))->GetCurSel();
-        CString str;
-        str.Format(L"%d", index + 1);
-        m_query += str;
+        m_query += lexical_cast<wstring>(index + 1);
     }
 
     if (useID)
@@ -187,10 +187,10 @@ void CSearchDialog::OnBnClickedOk()
         m_query += L" AND 序号 BETWEEN ";
         CString str;
         GetDlgItem(IDC_EDIT_IDFROM1)->GetWindowText(str);
-        m_query += str;
+        m_query += str.GetBuffer();
         m_query += L" AND ";
         GetDlgItem(IDC_EDIT_IDTO1)->GetWindowText(str);
-        m_query += str;
+        m_query += str.GetBuffer();
     }
 
     CDialogEx::OnOK();
@@ -340,7 +340,7 @@ void CSearchDialog::OnCbnSelchangeComboQuality1()
     ((CButton*)GetDlgItem(IDC_CHECK9))->SetCheck(TRUE);
 }
 
-CString CSearchDialog::GetQuery()
+wstring CSearchDialog::GetQuery()
 {
     return m_query;
 }
