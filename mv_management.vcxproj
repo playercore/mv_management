@@ -14,6 +14,7 @@
     <ClCompile Include="source\collapse_button.cpp" />
     <ClCompile Include="source\field_column_mapping.cpp" />
     <ClCompile Include="source\guide_control.cpp" />
+    <ClCompile Include="source\image_cache.cpp" />
     <ClCompile Include="source\ini_control.cpp" />
     <ClCompile Include="source\jpeg_tool.cpp" />
     <ClCompile Include="source\mv_management_app.cpp" />
@@ -32,10 +33,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource\Resource.h" />
+    <ClInclude Include="source\basictypes.h" />
     <ClInclude Include="source\collapse_button.h" />
     <ClInclude Include="source\field_column_mapping.h" />
     <ClInclude Include="source\guide_control.h" />
+    <ClInclude Include="source\image_cache.h" />
     <ClInclude Include="source\ini_control.h" />
+    <ClInclude Include="source\intrusive_ptr_helper.h" />
     <ClInclude Include="source\jpeg_tool.h" />
     <ClInclude Include="source\list_item_define.h" />
     <ClInclude Include="source\mfc_predefine.h" />
@@ -52,6 +56,7 @@
     <ClInclude Include="source\common.h" />
     <ClInclude Include="source\sql_control.h" />
     <ClInclude Include="source\targetver.h" />
+    <ClInclude Include="source\task_canceler.h" />
     <ClInclude Include="source\util.h" />
   </ItemGroup>
   <ItemGroup>

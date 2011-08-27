@@ -103,6 +103,7 @@ private:
     void PlayMV(int row);
     void PreviewMV(int item);
     bool PrintMark(CBitmap* target, bool succeeded);
+    bool IsReportView() { return GetStyle() & LVS_REPORT; }
 
     SongInfoListControl* control_;
     bool isAscending_;
@@ -247,52 +248,51 @@ int CMyListCtrl::CompareFunction(LPARAM lParam1, LPARAM lParam2,
     return listCtrl->isAscending_ ? !r : r;
 }
 
-void CMyListCtrl::OnNMCustomdraw(NMHDR* pNMHDR, LRESULT* pResult)
+void CMyListCtrl::OnNMCustomdraw(NMHDR* desc, LRESULT* result)
 {
-    NMLVCUSTOMDRAW* pLVCD = reinterpret_cast<NMLVCUSTOMDRAW*>( pNMHDR );
+    NMLVCUSTOMDRAW* drawInfo = reinterpret_cast<NMLVCUSTOMDRAW*>(desc);
 
     // Take the default processing unless we set this to something else below.
-    *pResult = CDRF_DODEFAULT;
+    *result = CDRF_DODEFAULT;
 
     // First thing - check the draw stage. If it's the control's prepaint
     // stage, then tell Windows we want messages for every item.
 
-    if ( CDDS_PREPAINT == pLVCD->nmcd.dwDrawStage )
-    {
-        *pResult = CDRF_NOTIFYITEMDRAW;
-    }
-    else if ( CDDS_ITEMPREPAINT == pLVCD->nmcd.dwDrawStage )
-    {
-        // This is the notification message for an item. We'll request
-        // notifications before each subitem's prepaint stage.
-        *pResult = CDRF_NOTIFYSUBITEMDRAW;
-    }
-    else if ( (CDDS_ITEMPREPAINT | CDDS_SUBITEM) == pLVCD->nmcd.dwDrawStage )
-    {
+    if (CDDS_PREPAINT == drawInfo->nmcd.dwDrawStage) {
+        *result = CDRF_NOTIFYITEMDRAW;
+    } else if (CDDS_ITEMPREPAINT == drawInfo->nmcd.dwDrawStage) {
+        if (IsReportView()) {
+            // This is the notification message for an item. We'll request
+            // notifications before each subitem's prepaint stage.
+            *result = CDRF_NOTIFYSUBITEMDRAW;
+        } else { // Icon view.
+            //ImageCache::get()->LoadJPEG()
+            *result = CDRF_DODEFAULT;
+        }
+    } else if ((CDDS_ITEMPREPAINT | CDDS_SUBITEM) ==
+        drawInfo->nmcd.dwDrawStage) {
         // This is the prepaint stage for a subitem. Here's where we set the
         // item's text and background colors. Our return value will tell 
         // Windows to draw the subitem itself, but it will use the new colors
         // we set here. 
         CString str = GetItemText(
-            pLVCD->nmcd.dwItemSpec,
+            drawInfo->nmcd.dwItemSpec,
             FieldColumnMapping::get()->GetColumnIndex(
                 FieldColumnMapping::kSongFullListNumOfTracks));
-        int trackCount = _wtoi((LPTSTR)(LPCTSTR)str);
-        if (trackCount >= 2)
-        {
-            pLVCD->clrTextBk = RGB(227,233,255);
+        int trackCount = lexical_cast<int>(str.GetBuffer());
+        if (trackCount >= 2) {
+            drawInfo->clrTextBk = RGB(227, 233, 255);
             //pLVCD->clrText = 0xC0DCC0;
             //SetFont(m_Font, false);
+        } else {
+             drawInfo->clrTextBk = 16777215;
+             drawInfo->clrText = 0;
         }
-         else
-         {
-             pLVCD->clrTextBk = 16777215;
-             pLVCD->clrText = 0;
-         }
+
         //SetFont(m_Font, false);
         // Store the colors back in the NMLVCUSTOMDRAW struct.
         // Tell Windows to paint the control itself.
-        *pResult = CDRF_DODEFAULT;
+        *result = CDRF_DODEFAULT;
     }
 }
 
@@ -300,7 +300,7 @@ void CMyListCtrl::OnNMDblclk(NMHDR* desc, LRESULT* result)
 {
     LPNMITEMACTIVATE itemActivate = reinterpret_cast<LPNMITEMACTIVATE>(desc);
     if (::GetKeyState(VK_CONTROL) < 0) {
-        const bool reportView = GetStyle() & LVS_REPORT;
+        const bool reportView = IsReportView();
         AfxGetMainWnd()->SendMessage(
             SongInfoListControl::GetDisplaySwitchMessage(), reportView, 0);
 
@@ -314,7 +314,7 @@ void CMyListCtrl::OnNMDblclk(NMHDR* desc, LRESULT* result)
     }
 
     if (itemActivate->iItem >= 0) {
-        if (GetStyle() & LVS_REPORT)
+        if (IsReportView())
             PlayMV(itemActivate->iItem);
         else
             PreviewMV(itemActivate->iItem);
@@ -327,7 +327,7 @@ void CMyListCtrl::OnRightClicked(NMHDR* desc, LRESULT* result)
 {
     NMITEMACTIVATE* itemActivate = reinterpret_cast<NMITEMACTIVATE*>(desc);
     *result = 0;
-    if ((GetStyle() & LVS_REPORT) || (itemActivate->iItem < 0))
+    if (IsReportView() || (itemActivate->iItem < 0))
         return;
 
     const int songId = GetItemData(itemActivate->iItem);
@@ -659,7 +659,7 @@ void SongInfoListControl::SelectItem(int index)
 
 bool SongInfoListControl::IsReportView()
 {
-    return (impl_->GetStyle() & LVS_REPORT);
+    return impl_->IsReportView();
 }
 
 void SongInfoListControl::UpdateMapping()

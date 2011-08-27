@@ -19,6 +19,7 @@
     <ClCompile Include="source\collapse_button.cpp" />
     <ClCompile Include="source\guide_control.cpp" />
     <ClCompile Include="source\ini_control.cpp" />
+    <ClCompile Include="source\image_cache.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\targetver.h" />
@@ -45,6 +46,10 @@
     <ClInclude Include="source\collapse_button.h" />
     <ClInclude Include="source\guide_control.h" />
     <ClInclude Include="source\ini_control.h" />
+    <ClInclude Include="source\task_canceler.h" />
+    <ClInclude Include="source\basictypes.h" />
+    <ClInclude Include="source\intrusive_ptr_helper.h" />
+    <ClInclude Include="source\image_cache.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="%28resource%29">
