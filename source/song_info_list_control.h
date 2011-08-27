@@ -3,12 +3,15 @@
 
 #include <memory>
 #include <map>
+#include <vector>
 #include <string>
 
 struct SongInfo;
+struct SongInfo0;
 class CWnd;
 class CMyListCtrl;
 class CRect;
+class CBitmap;
 class SongInfoListControl
 {
 public:
@@ -39,12 +42,15 @@ private:
     void UpdateMapping();
     int GetItemIndexBySongId(int songId);
     int GetPreviewTimeBySongId(int songId);
-    void GetSongInfoBySongId(int songId, SongInfo* info);
+    bool GetSongInfoBySongId(int songId, SongInfo* info);
     void SetPreviewTimeToBeBySongId(int songId, int previewTime);
     void ConfirmPreviewTime(int songId);
 
     std::unique_ptr<CMyListCtrl> impl_;
     std::map<int, SongInfo> songIdToItem_;
+    std::unique_ptr<CBitmap> loadFailureUploaded_;
+    std::unique_ptr<CBitmap> loadFailure_;
+    std::vector<std::unique_ptr<SongInfo0>> songInfoManagement_;
 };
 
 #endif  // _SONG_INFO_LIST_CONTROL_H_

@@ -35,20 +35,22 @@ ImageCache::ImageCache()
     , loadingDoneSignal_()
 {
     thread_.Start();
-    thread_.message_loop()->PostTask(
+    thread_.message_loop()->PostDelayedTask(
         FROM_HERE,
-        NewRunnableFunction(&DowngradePriority, thread_.thread_handle()));
+        NewRunnableFunction(&DowngradePriority, thread_.thread_handle()),
+        100);
 }
 
 ImageCache::~ImageCache()
 {
 }
 
-void ImageCache::LoadJPEG(const wchar_t* imagePath, CTaskCanceler* canceler,
+void ImageCache::LoadJPEG(const const std::wstring& imagePath,
+                          CTaskCanceler* canceler,
                           const function<void (void*)>& callback)
 {
     thread_.message_loop()->PostTask(
         FROM_HERE,
-        NewRunnableFunction(&LoadJPEGImpl, wstring(imagePath),
+        NewRunnableFunction(&LoadJPEGImpl, imagePath,
                             intrusive_ptr<CTaskCanceler>(canceler), callback));
 }

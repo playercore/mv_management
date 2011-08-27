@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 
+//#include "third_party/chromium/base/ref_counted.h"
 #include "basictypes.h"
 
 enum { NUM_COLUMNS_EXCLUDED = 9 };
@@ -11,7 +12,7 @@ enum { COLUMN_WIDTH = 80 };
 
 std::wstring GetLocalIP();
 
-class BufferBase
+class BufferBase// : public base::RefCountedThreadSafe<BufferBase>
 {
 public:
     explicit BufferBase(int size) : impl_(new int8[size]) {}

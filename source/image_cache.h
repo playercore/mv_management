@@ -2,6 +2,7 @@
 #define _IMAGE_CACHE_H_
 
 #include <functional>
+#include <string>
 
 #include <boost/signals2.hpp>
 
@@ -18,7 +19,7 @@ public:
     ImageCache();
     ~ImageCache();
 
-    void LoadJPEG(const wchar_t* imagePath, CTaskCanceler* canceler,
+    void LoadJPEG(const std::wstring& imagePath, CTaskCanceler* canceler,
                   const std::function<void (void*)>& callback);
 
 private:
