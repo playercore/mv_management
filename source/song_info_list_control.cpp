@@ -90,13 +90,6 @@ struct SongInfo
     int ImageIndex;
     int64 PreviewTime;
     int64 PreviewTimeToBe;
-    bool ImageLoaded;
-};
-
-struct SongInfo0
-{
-    int SongId;
-    SongInfo Detail;
 };
 
 class CMyListCtrl : public CListCtrl
@@ -370,8 +363,8 @@ void CMyListCtrl::OnRightClicked(NMHDR* desc, LRESULT* result)
     if (IsReportView() || (itemActivate->iItem < 0))
         return;
 
-    const SongInfo0* songInfo =
-        reinterpret_cast<SongInfo0*>(GetItemData(itemActivate->iItem));
+    const SongInfo* songInfo =
+        reinterpret_cast<SongInfo*>(GetItemData(itemActivate->iItem));
     assert(songInfo);
     const int songId = songInfo->SongId;
     const int previewTime = control_->GetPreviewTimeBySongId(songId);
@@ -411,11 +404,10 @@ LRESULT CMyListCtrl::OnMessageJPEGLoaded(WPARAM songId, LPARAM image)
         return 0;
     }
 
-    SongInfo0* songInfo =
-        reinterpret_cast<SongInfo0*>(GetItemData(info.ItemIndex));
-    assert(songInfo);
-    info.ImageLoaded = true;
-    songInfo->Detail.ImageLoaded = true;
+    // The loading request maybe applied more than once. We don't have to
+    // process each of them.
+    if (info.ImageIndex >= 0)
+        return 0;
 
     CBitmap bitmap;
     CreateBitmapFromBuffer(&bitmap, reinterpret_cast<void*>(image));
@@ -424,10 +416,21 @@ LRESULT CMyListCtrl::OnMessageJPEGLoaded(WPARAM songId, LPARAM image)
 
     CImageList* imageList = GetImageList(ILS_NORMAL);
     if (imageList) {
-        if (imageList->Replace(info.ImageIndex, &bitmap, NULL)) {
-            bitmap.Detach();
-            RedrawItems(info.ItemIndex, info.ItemIndex);
-        }
+        const int imageIndex =
+            imageList->Add(&bitmap, reinterpret_cast<CBitmap*>(NULL));
+
+        SongInfo* songInfo =
+            reinterpret_cast<SongInfo*>(GetItemData(info.ItemIndex));
+        assert(songInfo);
+
+        info.ImageIndex = imageIndex;
+        songInfo->ImageIndex = imageIndex;
+
+        LVITEM itemDesc = {0};
+        itemDesc.mask = LVIF_IMAGE;
+        itemDesc.iItem = info.ItemIndex;
+        itemDesc.iImage = imageIndex;
+        SetItem(&itemDesc);
     }
 
     return 0;
@@ -517,7 +520,7 @@ void CMyListCtrl::PreviewMV(int item)
         FieldColumnMapping::get()->GetColumnIndex(
             FieldColumnMapping::kSongFullListMd5)).GetBuffer();
     path previewPath(GetMvPreviewPath() + md5 + L".jpg");
-    const SongInfo0* songInfo = reinterpret_cast<SongInfo0*>(GetItemData(item));
+    const SongInfo* songInfo = reinterpret_cast<SongInfo*>(GetItemData(item));
     assert(songInfo);
     const int songId = songInfo->SongId;
     const int previewTime = control_->GetPreviewTimeBySongId(songId);
@@ -601,15 +604,13 @@ bool CMyListCtrl::PrintMark(CBitmap* target, bool succeeded)
 
 void CMyListCtrl::LoadJPEGIfNeeded(int item)
 {
-    const SongInfo0* songInfo = reinterpret_cast<SongInfo0*>(GetItemData(item));
+    const SongInfo* songInfo = reinterpret_cast<SongInfo*>(GetItemData(item));
     assert(songInfo);
     if (!songInfo)
         return;
     
-    if (songInfo->Detail.ImageLoaded)
+    if (songInfo->ImageIndex >= 0)
         return;
-
-    TRACE1("\r\n to load image: %d", item);
 
     wstring md5 = GetItemText(
         item,
@@ -698,20 +699,16 @@ int SongInfoListControl::AddItem(const wchar_t* text, int songId,
         impl_->SetImageList(&l, LVSIL_NORMAL);
         l.Detach();
         imageList = impl_->GetImageList(LVSIL_NORMAL);
+        imageList->Add(loadFailure_.get(), reinterpret_cast<CBitmap*>(NULL));
     }
 
-    int imageIndex = imageList->Add(bitmap, reinterpret_cast<CBitmap*>(NULL));
-
     const int itemIndex = impl_->GetItemCount();
-    const int r = impl_->InsertItem(itemIndex, text, imageIndex);
+    const int r = impl_->InsertItem(itemIndex, text, 0);
 
     // Update song ID-item mapping.
-    SongInfo0 d =
-    { songId,
-      { songId, itemIndex, imageIndex, previewTime, previewTime, false }
-    };
-    songIdToItem_.insert(pair<int, SongInfo>(songId, d.Detail));
-    unique_ptr<SongInfo0> info(new SongInfo0(d));
+    SongInfo d = { songId, itemIndex, -1, previewTime, previewTime };
+    songIdToItem_.insert(pair<int, SongInfo>(songId, d));
+    unique_ptr<SongInfo> info(new SongInfo(d));
     impl_->SetItemData(itemIndex,
                        reinterpret_cast<DWORD_PTR>(info.get()));
     songInfoManagement_.push_back(std::move(info));
@@ -790,8 +787,8 @@ void SongInfoListControl::UpdateMapping()
 {
     const int itemCount = impl_->GetItemCount();
     for (int i = 0; i < itemCount; ++i) {
-        const SongInfo0* songInfo =
-            reinterpret_cast<SongInfo0*>(impl_->GetItemData(i));
+        const SongInfo* songInfo =
+            reinterpret_cast<SongInfo*>(impl_->GetItemData(i));
         assert(songInfo);
         const int songId = songInfo->SongId;
         auto iter = songIdToItem_.find(songId);

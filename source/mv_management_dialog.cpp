@@ -211,9 +211,7 @@ BOOL CMVManagementDialog::OnInitDialog()
 	typeCombox->AddString(L"多首歌曲组合");
 
     for (size_t i = 0; i < vec.size(); i++)
-    {
         typeCombox->AddString(vec[i].c_str());
-    }
    
     guideText1_.SetParent(&guide_);
     guideText2_.SetParent(&guide_);
@@ -225,15 +223,19 @@ BOOL CMVManagementDialog::OnInitDialog()
     ScreenToClient(&rect);
     tabTop_ = rect.top;
 
-	m_tab.InsertItem(0,L"所有歌曲");
-	m_tab.InsertItem(1,L"去除重复歌曲");
+	m_tab.InsertItem(0, L"所有歌曲");
+	m_tab.InsertItem(1, L"去除重复歌曲");
 
     m_songFullList.Create(&m_tab, rect, IDC_LIST1);
     m_splitterDialog.Create(IDD_DIALOG_SPLITTER, &m_tab);
     m_splitterDialog.MoveWindow(&rect);
   
+    DWORD start_time = GetTickCount();
+
     _RecordsetPtr recordset;
     simpleUpdate(recordset);
+
+    DWORD finish_query = GetTickCount();
         
     if (recordset != NULL)
     {
@@ -258,6 +260,7 @@ BOOL CMVManagementDialog::OnInitDialog()
         updateSongFullListByRecordset(recordset);
     }
 
+    DWORD finish_insert = GetTickCount();
     GetClientRect(&rect);
     Layout(rect.Width(), rect.Height());
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
@@ -365,7 +368,6 @@ void CMVManagementDialog::updateSongFullListByRecordset(_RecordsetPtr recordset)
     int row = 0;
     m_songFullList.DeleteAllItems();
     m_songFullList.SetRedraw(FALSE);
-    DWORD begin = GetTickCount();
     while (!recordset->adoEOF)
     {
         _variant_t t = recordset->GetCollect(0L);
@@ -377,7 +379,7 @@ void CMVManagementDialog::updateSongFullListByRecordset(_RecordsetPtr recordset)
         int index = m_songFullList.AddItem(
             songIdInText, songId,
             ((VT_NULL != t.vt) ? static_cast<int>(t) : -1), md5);
-        for (long i = 1;i < num; ++i)
+        for (long i = 1; i < num; ++i)
         {
             t = recordset->GetCollect(i);
             m_songFullList.SetItemText(

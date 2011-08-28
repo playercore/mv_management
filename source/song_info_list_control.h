@@ -7,7 +7,6 @@
 #include <string>
 
 struct SongInfo;
-struct SongInfo0;
 class CWnd;
 class CMyListCtrl;
 class CRect;
@@ -50,7 +49,7 @@ private:
     std::map<int, SongInfo> songIdToItem_;
     std::unique_ptr<CBitmap> loadFailureUploaded_;
     std::unique_ptr<CBitmap> loadFailure_;
-    std::vector<std::unique_ptr<SongInfo0>> songInfoManagement_;
+    std::vector<std::unique_ptr<SongInfo>> songInfoManagement_;
 };
 
 #endif  // _SONG_INFO_LIST_CONTROL_H_

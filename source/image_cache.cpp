@@ -32,7 +32,6 @@ void LoadJPEGImpl(wstring jpegPath, intrusive_ptr<CTaskCanceler> canceler,
 
 ImageCache::ImageCache()
     : thread_("image caching")
-    , loadingDoneSignal_()
 {
     thread_.Start();
     thread_.message_loop()->PostDelayedTask(
