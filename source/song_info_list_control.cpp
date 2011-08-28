@@ -184,8 +184,6 @@ END_MESSAGE_MAP()
 void CMyListCtrl::OnLvnItemchanged(NMHDR* desc, LRESULT* result)
 {
     LPNMLISTVIEW specDesc = reinterpret_cast<LPNMLISTVIEW>(desc);
-    // TODO: 在此添加控件通知处理程序代码
-    
     if ((specDesc->uChanged & LVIF_STATE) &&
         (specDesc->uNewState & LVIS_SELECTED)) {
         int selItem = specDesc->iItem;
@@ -288,16 +286,20 @@ void CMyListCtrl::OnNMCustomdraw(NMHDR* desc, LRESULT* result)
     if (CDDS_PREPAINT == drawInfo->nmcd.dwDrawStage) {
         *result = CDRF_NOTIFYITEMDRAW;
     } else if (CDDS_ITEMPREPAINT == drawInfo->nmcd.dwDrawStage) {
-       if (IsReportView()) {
-            // This is the notification message for an item. We'll request
-            // notifications before each subitem's prepaint stage.
-            *result = CDRF_NOTIFYSUBITEMDRAW;
-        } else { // Icon view.
-            RECT itemRect;
-            GetItemRect(drawInfo->nmcd.dwItemSpec, &itemRect, LVIR_BOUNDS);
-
-            if (itemRect.bottom >= 0)
-                LoadJPEGIfNeeded(drawInfo->nmcd.dwItemSpec);
+        RECT itemRect;
+        GetItemRect(drawInfo->nmcd.dwItemSpec, &itemRect, LVIR_BOUNDS);
+        if (itemRect.bottom >= 0) {
+            if (IsReportView()) {
+                // This is the notification message for an item. We'll request
+                // notifications before each subitem's prepaint stage.
+                *result = CDRF_NOTIFYSUBITEMDRAW;
+            } else { // Icon view.
+//                 RECT itemRect;
+//                 GetItemRect(drawInfo->nmcd.dwItemSpec, &itemRect, LVIR_BOUNDS);
+// 
+//                 if (itemRect.bottom >= 0)
+                    LoadJPEGIfNeeded(drawInfo->nmcd.dwItemSpec);
+            }
         }
     } else if ((CDDS_ITEMPREPAINT | CDDS_SUBITEM) ==
         drawInfo->nmcd.dwDrawStage) {
@@ -313,14 +315,11 @@ void CMyListCtrl::OnNMCustomdraw(NMHDR* desc, LRESULT* result)
         int trackCount = lexical_cast<int>(str.GetBuffer());
         if (trackCount >= 2) {
             drawInfo->clrTextBk = RGB(227, 233, 255);
-            //pLVCD->clrText = 0xC0DCC0;
-            //SetFont(m_Font, false);
         } else {
              drawInfo->clrTextBk = 16777215;
              drawInfo->clrText = 0;
         }
 
-        //SetFont(m_Font, false);
         // Store the colors back in the NMLVCUSTOMDRAW struct.
         // Tell Windows to paint the control itself.
         *result = CDRF_DODEFAULT;
