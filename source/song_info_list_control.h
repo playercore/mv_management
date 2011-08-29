@@ -41,7 +41,7 @@ private:
     void UpdateMapping();
     int GetItemIndexBySongId(int songId);
     int GetPreviewTimeBySongId(int songId);
-    bool GetSongInfoBySongId(int songId, SongInfo* info);
+    bool GetSongInfoBySongId(int songId, SongInfo** info);
     void SetPreviewTimeToBeBySongId(int songId, int previewTime);
     void ConfirmPreviewTime(int songId);
 
@@ -49,7 +49,6 @@ private:
     std::map<int, SongInfo> songIdToItem_;
     std::unique_ptr<CBitmap> loadFailureUploaded_;
     std::unique_ptr<CBitmap> loadFailure_;
-    std::vector<std::unique_ptr<SongInfo>> songInfoManagement_;
 };
 
 #endif  // _SONG_INFO_LIST_CONTROL_H_
