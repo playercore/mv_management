@@ -13,7 +13,7 @@ public:
     std::wstring GetIDFrom();
     std::wstring GetIDTo();
     std::vector<std::wstring> GetMVType();
-    std::wstring GetKmplayer();
+    std::wstring GetPlayerPathName();
     std::wstring GetServerIP();
     std::wstring GetUserName();
     std::wstring GetPassword();

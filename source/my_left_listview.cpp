@@ -141,32 +141,27 @@ void CMyLeftListView::OnColumnClick(NMHDR* pNMHDR, LRESULT* pResult)
     *pResult = 0;
 }
 
-void CMyLeftListView::OnNMDblclk(NMHDR *pNMHDR, LRESULT *pResult)
+void CMyLeftListView::OnNMDblclk(NMHDR* desc, LRESULT* r)
 {
-    LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
-    // TODO: 在此添加控件通知处理程序代码
+    NMITEMACTIVATE* itemActivate = reinterpret_cast<NMITEMACTIVATE*>(desc);
 
-    CString cmd = CIniControl::get()->GetKmplayer().c_str();
-    cmd += L"KMPlayer.exe";
     CString str;
     str += L"\"";
     CListCtrl& list = GetListCtrl();
-    str += list.GetItemText(pNMItemActivate->iItem, 
+    str += list.GetItemText(itemActivate->iItem, 
                             FieldColumnMapping::kSongFullListFilePath);
     str += L"\"";
 
-    SHELLEXECUTEINFO  ShExecInfo;
-    ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
-    ShExecInfo.fMask    = NULL;
-    ShExecInfo.hwnd      = NULL;
-    ShExecInfo.lpVerb    = NULL;
-    ShExecInfo.lpFile      = cmd;       
-    ShExecInfo.lpParameters = str;
-    ShExecInfo.lpDirectory    = NULL;
-    //ShExecInfo.nShow          = SW_MAXIMIZE;                // 全屏显示这个程序
-    ShExecInfo.hInstApp = NULL;
+    SHELLEXECUTEINFO shExecInfo;
+    shExecInfo.cbSize = sizeof(shExecInfo);
+    shExecInfo.fMask = NULL;
+    shExecInfo.hwnd = NULL;
+    shExecInfo.lpVerb = NULL;
+    shExecInfo.lpFile = CIniControl::get()->GetPlayerPathName().c_str();
+    shExecInfo.lpParameters = str;
+    shExecInfo.lpDirectory = NULL;
+    shExecInfo.hInstApp = NULL;
 
-    BOOL r = ShellExecuteEx(&ShExecInfo);
-
-    *pResult = 0;
+    ShellExecuteEx(&shExecInfo);
+    *r = 0;
 }

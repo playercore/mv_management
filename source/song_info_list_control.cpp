@@ -31,6 +31,7 @@ using std::list;
 using std::bind;
 using boost::filesystem3::path;
 using boost::lexical_cast;
+using boost::bad_lexical_cast;
 using boost::intrusive_ptr;
 
 namespace {
@@ -308,7 +309,14 @@ void CMyListCtrl::OnNMCustomdraw(NMHDR* desc, LRESULT* result)
             drawInfo->nmcd.dwItemSpec,
             FieldColumnMapping::get()->GetColumnIndex(
                 FieldColumnMapping::kSongFullListNumOfTracks));
-        int trackCount = lexical_cast<int>(str.GetBuffer());
+        int trackCount;
+        try {
+            trackCount = lexical_cast<int>(str.GetBuffer());
+        } catch (const bad_lexical_cast& e) {
+            (e);
+            trackCount = 0;
+        }
+
         if (trackCount >= 2) {
             drawInfo->clrTextBk = RGB(227, 233, 255);
         } else {
@@ -475,8 +483,6 @@ void CMyListCtrl::Acknowledge(int songId, int result)
 
 void CMyListCtrl::PlayMV(int row)
 {
-    CString cmd = CIniControl::get()->GetKmplayer().c_str();
-    cmd += L"KMPlayer.exe";
     CString str;
     str += L"\"";
     str += GetItemText(
@@ -485,18 +491,17 @@ void CMyListCtrl::PlayMV(int row)
             FieldColumnMapping::kSongFullListFilePath));
     str += L"\"";
 
-    SHELLEXECUTEINFO  ShExecInfo;
-    ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
-    ShExecInfo.fMask    = NULL;
-    ShExecInfo.hwnd      = NULL;
-    ShExecInfo.lpVerb    = NULL;
-    ShExecInfo.lpFile      = cmd;       
-    ShExecInfo.lpParameters = str;
-    ShExecInfo.lpDirectory    = NULL;
-    //ShExecInfo.nShow          = SW_MAXIMIZE;                // 全屏显示这个程序
-    ShExecInfo.hInstApp = NULL;
+    SHELLEXECUTEINFO shExecInfo;
+    shExecInfo.cbSize = sizeof(shExecInfo);
+    shExecInfo.fMask = NULL;
+    shExecInfo.hwnd = NULL;
+    shExecInfo.lpVerb = NULL;
+    shExecInfo.lpFile = CIniControl::get()->GetPlayerPathName().c_str();
+    shExecInfo.lpParameters = str;
+    shExecInfo.lpDirectory = NULL;
+    shExecInfo.hInstApp = NULL;
 
-    BOOL r = ShellExecuteEx(&ShExecInfo);
+    ShellExecuteEx(&shExecInfo);
 }
 
 void CMyListCtrl::PreviewMV(int item)

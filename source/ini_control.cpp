@@ -52,11 +52,11 @@ vector<wstring> CIniControl::GetMVType()
     return vec;    
 }
 
-wstring CIniControl::GetKmplayer()
+wstring CIniControl::GetPlayerPathName()
 {
     wchar_t buf[32767];
-    int len = GetPrivateProfileString(L"setup", L"kmpPath", L"", buf, 32767, 
-        m_path.c_str());
+    int len = GetPrivateProfileString(L"setup", L"PlayerPathName", L"", buf,
+                                      32767, m_path.c_str());
 
     return wstring(buf);
 }
