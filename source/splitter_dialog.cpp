@@ -14,7 +14,7 @@
 IMPLEMENT_DYNAMIC(CSplitterDialog, CDialog)
 
 CSplitterDialog::CSplitterDialog(CWnd* pParent /*=NULL*/)
-	: CDialog(CSplitterDialog::IDD, pParent)
+    : CDialog(CSplitterDialog::IDD, pParent)
 {
 
 }
@@ -25,7 +25,7 @@ CSplitterDialog::~CSplitterDialog()
 
 void CSplitterDialog::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+    CDialog::DoDataExchange(pDX);
 }
 
 

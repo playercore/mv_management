@@ -297,7 +297,7 @@ void CSQLControl::StatusStoreProcForSong(
     }
     catch (_com_error e)
     {
-    	MessageBox(NULL, e.Description(), L"", MB_OK);
+        MessageBox(NULL, e.Description(), L"", MB_OK);
     }
  
 

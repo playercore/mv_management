@@ -12,7 +12,7 @@ using boost::lexical_cast;
 IMPLEMENT_DYNAMIC(CSearchDialog, CDialogEx)
 
 CSearchDialog::CSearchDialog(CWnd* pParent /*=NULL*/)
-	: CDialogEx(CSearchDialog::IDD, pParent)
+    : CDialogEx(CSearchDialog::IDD, pParent)
 {
 
 }
@@ -23,7 +23,7 @@ CSearchDialog::~CSearchDialog()
 
 void CSearchDialog::DoDataExchange(CDataExchange* pDX)
 {
-	CDialogEx::DoDataExchange(pDX);
+    CDialogEx::DoDataExchange(pDX);
 }
 
 

@@ -9,6 +9,9 @@
 class CIniControl : public Singleton<CIniControl>
 {
 public:
+    CIniControl();
+    ~CIniControl();
+
     void Init(const wchar_t* path);
     std::wstring GetIDFrom();
     std::wstring GetIDTo();
@@ -21,11 +24,12 @@ public:
     void SetIDFrom(wchar_t* id);
     void SetIDTo(wchar_t* id);
 
-    CIniControl();
-    ~CIniControl();
-
 private:
-    std::wstring m_path;
+    std::wstring GetProfileString(const wchar_t* appName,
+                                  const wchar_t* keyName,
+                                  const wchar_t* defaultValue);
+
+    std::wstring m_profilePath;
 };
 
 #endif // _INI_CONTROL_H_

@@ -14,9 +14,9 @@
 class CSplitterDialog : public CDialog
 {
 public:
-	enum { IDD = IDD_DIALOG_SPLITTER };
-	CSplitterDialog(CWnd* pParent = NULL);   // 标准构造函数
-	virtual ~CSplitterDialog();
+    enum { IDD = IDD_DIALOG_SPLITTER };
+    CSplitterDialog(CWnd* pParent = NULL);   // 标准构造函数
+    virtual ~CSplitterDialog();
     afx_msg void OnSize(UINT nType, int cx, int cy);
    virtual BOOL OnInitDialog();
    void Search(_RecordsetPtr recordset);
@@ -26,12 +26,12 @@ public:
 
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
-	DECLARE_MESSAGE_MAP()
+    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
+    DECLARE_MESSAGE_MAP()
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg LRESULT updateLeftListSel(WPARAM waram, LPARAM param);
 
-private:	
+private:    
     DECLARE_DYNAMIC(CSplitterDialog)
     CSplitterWnd m_wndSplitter;
     CFrameWnd* m_pMyFrame;

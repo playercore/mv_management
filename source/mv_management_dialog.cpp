@@ -58,16 +58,16 @@ BOOL __stdcall EnumAndShow(HWND h, LPARAM p)
 class CAboutDlg : public CDialogEx
 {
 public:
-	CAboutDlg();
+    CAboutDlg();
 
-	enum { IDD = IDD_ABOUTBOX };
+    enum { IDD = IDD_ABOUTBOX };
 
-	protected:
-	virtual void DoDataExchange(CDataExchange* dataExch);
+    protected:
+    virtual void DoDataExchange(CDataExchange* dataExch);
 
 // 实现
 protected:
-	DECLARE_MESSAGE_MAP()
+    DECLARE_MESSAGE_MAP()
 };
 
 CAboutDlg::CAboutDlg() : CDialogEx(CAboutDlg::IDD)
@@ -76,14 +76,14 @@ CAboutDlg::CAboutDlg() : CDialogEx(CAboutDlg::IDD)
 
 void CAboutDlg::DoDataExchange(CDataExchange* dataExch)
 {
-	CDialogEx::DoDataExchange(dataExch);
+    CDialogEx::DoDataExchange(dataExch);
 }
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 END_MESSAGE_MAP()
 
 CMVManagementDialog::CMVManagementDialog(CWnd* parent /*=NULL*/)
-	: CDialogEx(CMVManagementDialog::IDD, parent)
+    : CDialogEx(CMVManagementDialog::IDD, parent)
     , m_id_from(L"")
     , m_id_to(L"")
     , m_page(0)
@@ -93,7 +93,7 @@ CMVManagementDialog::CMVManagementDialog(CWnd* parent /*=NULL*/)
     , guideText1_()
     , guideText2_()
 {
-	m_icon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+    m_icon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
 void CMVManagementDialog::DoDataExchange(CDataExchange* dataExch)
@@ -109,11 +109,11 @@ void CMVManagementDialog::DoDataExchange(CDataExchange* dataExch)
 }
 
 BEGIN_MESSAGE_MAP(CMVManagementDialog, CDialogEx)
-	ON_WM_SYSCOMMAND()
-	ON_WM_PAINT()
-	ON_WM_QUERYDRAGICON()
+    ON_WM_SYSCOMMAND()
+    ON_WM_PAINT()
+    ON_WM_QUERYDRAGICON()
     ON_WM_CLOSE()
-	ON_NOTIFY(TCN_SELCHANGE, IDC_TAB1, &CMVManagementDialog::OnTcnSelchange)
+    ON_NOTIFY(TCN_SELCHANGE, IDC_TAB1, &CMVManagementDialog::OnTcnSelchange)
     ON_BN_CLICKED(IDC_BUTTON_SEARCH,
                   &CMVManagementDialog::OnBnClickedButtonSearch)
     ON_MESSAGE(UPDATESELITEM, &CMVManagementDialog::updateListSel)
@@ -134,69 +134,69 @@ END_MESSAGE_MAP()
 
 BOOL CMVManagementDialog::OnInitDialog()
 {
-	CDialogEx::OnInitDialog();
+    CDialogEx::OnInitDialog();
 
-	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
-	ASSERT(IDM_ABOUTBOX < 0xF000);
+    ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
+    ASSERT(IDM_ABOUTBOX < 0xF000);
 
-	CMenu* pSysMenu = GetSystemMenu(FALSE);
-	if (pSysMenu != NULL)
-	{
-		BOOL bNameValid;
-		CString strAboutMenu;
-		bNameValid = strAboutMenu.LoadString(IDS_ABOUTBOX);
-		ASSERT(bNameValid);
-		if (!strAboutMenu.IsEmpty())
-		{
-			pSysMenu->AppendMenu(MF_SEPARATOR);
-			pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
-		}
-	}
+    CMenu* pSysMenu = GetSystemMenu(FALSE);
+    if (pSysMenu != NULL)
+    {
+        BOOL bNameValid;
+        CString strAboutMenu;
+        bNameValid = strAboutMenu.LoadString(IDS_ABOUTBOX);
+        ASSERT(bNameValid);
+        if (!strAboutMenu.IsEmpty())
+        {
+            pSysMenu->AppendMenu(MF_SEPARATOR);
+            pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
+        }
+    }
 
-	// 设置此对话框的图标。当应用程序主窗口不是对话框时，框架将自动
-	//  执行此操作
-	SetIcon(m_icon, TRUE);			// 设置大图标
-	SetIcon(m_icon, FALSE);		// 设置小图标
+    // 设置此对话框的图标。当应用程序主窗口不是对话框时，框架将自动
+    //  执行此操作
+    SetIcon(m_icon, TRUE);            // 设置大图标
+    SetIcon(m_icon, FALSE);        // 设置小图标
 
     CreateStatusBar();
 
-	CButton* trackButton = reinterpret_cast<CButton*>(GetDlgItem(IDC_RADIO_0));
-	trackButton->SetCheck(1);
+    CButton* trackButton = reinterpret_cast<CButton*>(GetDlgItem(IDC_RADIO_0));
+    trackButton->SetCheck(1);
 
-	CButton* typeButton = reinterpret_cast<CButton*>(GetDlgItem(IDC_RADIO_6));
-	typeButton->SetCheck(1);
+    CButton* typeButton = reinterpret_cast<CButton*>(GetDlgItem(IDC_RADIO_6));
+    typeButton->SetCheck(1);
 
-	CButton* interlaceButton = 
-		reinterpret_cast<CButton*>(GetDlgItem(IDC_RADIO_NO));
-	interlaceButton->SetCheck(1);
+    CButton* interlaceButton = 
+        reinterpret_cast<CButton*>(GetDlgItem(IDC_RADIO_NO));
+    interlaceButton->SetCheck(1);
 
-	CComboBox* qualityCombox = 
-		reinterpret_cast<CComboBox*>(GetDlgItem(IDC_COMBO_MV_QUALITY));
+    CComboBox* qualityCombox = 
+        reinterpret_cast<CComboBox*>(GetDlgItem(IDC_COMBO_MV_QUALITY));
 
-	for (int i = 1; i <= 9; ++i)
-	{
-		CString str;
-		str.Format(L"%d",i);
-		qualityCombox->AddString(str);
-	}
-	qualityCombox->SetCurSel(0);
+    for (int i = 1; i <= 9; ++i)
+    {
+        CString str;
+        str.Format(L"%d",i);
+        qualityCombox->AddString(str);
+    }
+    qualityCombox->SetCurSel(0);
 
-	CComboBox* filterCombox = 
-		reinterpret_cast<CComboBox*>(GetDlgItem(IDC_COMBO_FILTER_CONDITION));
-	filterCombox->AddString(L"当前审核歌曲");
-	filterCombox->AddString(L"第一批歌曲");
-	filterCombox->AddString(L"第二批歌曲");
-	filterCombox->AddString(L"全部歌曲");
+    CComboBox* filterCombox = 
+        reinterpret_cast<CComboBox*>(GetDlgItem(IDC_COMBO_FILTER_CONDITION));
+    filterCombox->AddString(L"当前审核歌曲");
+    filterCombox->AddString(L"第一批歌曲");
+    filterCombox->AddString(L"第二批歌曲");
+    filterCombox->AddString(L"全部歌曲");
     filterCombox->AddString(L"零散MV");
-	filterCombox->SetCurSel(3);
+    filterCombox->SetCurSel(3);
 
     m_filterType = filterCombox->GetCurSel();
 
-	wstring path;
-	wchar_t curPath[MAX_PATH + 1];
-	GetCurrentDirectory(MAX_PATH,curPath);
-	path = curPath;
-	path += L"\\config.ini";
+    wstring path;
+    wchar_t curPath[MAX_PATH + 1];
+    GetCurrentDirectory(MAX_PATH,curPath);
+    path = curPath;
+    path += L"\\config.ini";
     CIniControl::get()->Init(path.c_str());
 
     m_id_from = CIniControl::get()->GetIDFrom().c_str();
@@ -205,10 +205,10 @@ BOOL CMVManagementDialog::OnInitDialog()
 
     vector<wstring> vec = CIniControl::get()->GetMVType();
 
-	CComboBox* typeCombox = 
-		reinterpret_cast<CComboBox*>(GetDlgItem(IDC_COMBO_MV_TYPE));
+    CComboBox* typeCombox = 
+        reinterpret_cast<CComboBox*>(GetDlgItem(IDC_COMBO_MV_TYPE));
 
-	typeCombox->AddString(L"多首歌曲组合");
+    typeCombox->AddString(L"多首歌曲组合");
 
     for (size_t i = 0; i < vec.size(); i++)
         typeCombox->AddString(vec[i].c_str());
@@ -223,8 +223,8 @@ BOOL CMVManagementDialog::OnInitDialog()
     ScreenToClient(&rect);
     tabTop_ = rect.top;
 
-	m_tab.InsertItem(0, L"所有歌曲");
-	m_tab.InsertItem(1, L"去除重复歌曲");
+    m_tab.InsertItem(0, L"所有歌曲");
+    m_tab.InsertItem(1, L"去除重复歌曲");
 
     m_songFullList.Create(&m_tab, rect, IDC_LIST1);
     m_splitterDialog.Create(IDD_DIALOG_SPLITTER, &m_tab);
@@ -263,100 +263,89 @@ BOOL CMVManagementDialog::OnInitDialog()
     DWORD finish_insert = GetTickCount();
     GetClientRect(&rect);
     Layout(rect.Width(), rect.Height());
-	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
+    return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
 void CMVManagementDialog::OnSysCommand(UINT id, LPARAM param)
 {
-	if ((id & 0xFFF0) == IDM_ABOUTBOX)
-	{
-		CAboutDlg dlgAbout;
-		dlgAbout.DoModal();
-	}
-	else
-	{
-		CDialogEx::OnSysCommand(id, param);
-	}
+    if ((id & 0xFFF0) == IDM_ABOUTBOX)
+    {
+        CAboutDlg dlgAbout;
+        dlgAbout.DoModal();
+    }
+    else
+    {
+        CDialogEx::OnSysCommand(id, param);
+    }
 }
 
 void CMVManagementDialog::OnPaint()
 {
-	if (IsIconic())
-	{
-		CPaintDC dc(this); // 用于绘制的设备上下文
+    if (IsIconic())
+    {
+        CPaintDC dc(this); // 用于绘制的设备上下文
 
-		SendMessage(WM_ICONERASEBKGND,
+        SendMessage(WM_ICONERASEBKGND,
                     reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
-		// 使图标在工作区矩形中居中
-		int cxIcon = GetSystemMetrics(SM_CXICON);
-		int cyIcon = GetSystemMetrics(SM_CYICON);
-		CRect rect;
-		GetClientRect(&rect);
-		int x = (rect.Width() - cxIcon + 1) / 2;
-		int y = (rect.Height() - cyIcon + 1) / 2;
+        int cxIcon = GetSystemMetrics(SM_CXICON);
+        int cyIcon = GetSystemMetrics(SM_CYICON);
+        CRect rect;
+        GetClientRect(&rect);
+        int x = (rect.Width() - cxIcon + 1) / 2;
+        int y = (rect.Height() - cyIcon + 1) / 2;
 
-		// 绘制图标
-		dc.DrawIcon(x, y, m_icon);
-	}
-	else
-	{
-		CDialogEx::OnPaint();
-	}
+        dc.DrawIcon(x, y, m_icon);
+    }
+    else
+    {
+        CDialogEx::OnPaint();
+    }
 }
 
-//当用户拖动最小化窗口时系统调用此函数取得光标
-//显示。
 HCURSOR CMVManagementDialog::OnQueryDragIcon()
 {
-	return static_cast<HCURSOR>(m_icon);
+    return static_cast<HCURSOR>(m_icon);
 }
 
 void CMVManagementDialog::OnBnClickedOtherMVType()
 {
-	// TODO: 在此添加控件通知处理程序代码
-	GetDlgItem(IDC_COMBO_MV_TYPE)->EnableWindow(TRUE);
+    GetDlgItem(IDC_COMBO_MV_TYPE)->EnableWindow(TRUE);
 }
 
 void CMVManagementDialog::OnBnClickedDefinedMVType(UINT id)
 {
-	// TODO: 在此添加控件通知处理程序代码
-	GetDlgItem(IDC_COMBO_MV_TYPE)->EnableWindow(FALSE);
+    GetDlgItem(IDC_COMBO_MV_TYPE)->EnableWindow(FALSE);
 }
 
-void CMVManagementDialog::OnTcnSelchange(NMHDR *pNMHDR, LRESULT *pResult)
+void CMVManagementDialog::OnTcnSelchange(NMHDR* desc, LRESULT* result)
 {
-	//当点击了Tab的按钮
-	
-	int num = m_tab.GetCurSel();
-	m_page = num;
+    int num = m_tab.GetCurSel();
+    m_page = num;
     _RecordsetPtr recordSet;
     simpleUpdate(recordSet);
-	switch(num)	
-	{
- 		case 0:
-		{
-			m_songFullList.ShowWindow(SW_SHOW);
-			m_splitterDialog.ShowWindow(SW_HIDE);
+    switch (num) {
+         case 0: {
+            m_songFullList.ShowWindow(SW_SHOW);
+            m_splitterDialog.ShowWindow(SW_HIDE);
             m_songFullList.DeleteAllItems();
             updateSongFullListByRecordset(recordSet);
             m_songFullList.SelectItem(0);
             if (!m_songFullList.IsReportView())
                 guide_.ShowWindow(SW_SHOW);
 
-			break;
-		}
-		case 1:
-		{
-			m_songFullList.ShowWindow(SW_HIDE);		
-			m_splitterDialog.ShowWindow(SW_SHOW);	
+            break;
+        }
+        case 1: {
+            m_songFullList.ShowWindow(SW_HIDE);        
+            m_splitterDialog.ShowWindow(SW_SHOW);    
             updateSplitterWnd(recordSet);
             m_splitterDialog.SelectItem();
             guide_.ShowWindow(SW_HIDE);
-			break;
-		}
-	}
-	*pResult = 0;
+            break;
+        }
+    }
+    *result = 0;
 }
 
 void CMVManagementDialog::updateSongFullListByRecordset(_RecordsetPtr recordset)

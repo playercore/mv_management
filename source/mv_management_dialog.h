@@ -20,7 +20,7 @@
 class CMVManagementDialog : public CDialogEx
 {
 public:
-	enum { IDD = IDD_MV_MANAGEMENT_DIALOG };
+    enum { IDD = IDD_MV_MANAGEMENT_DIALOG };
     enum KUploadState
     {
         uploaded = 0,
@@ -28,21 +28,21 @@ public:
         fail = 2
     };
 
-	CMVManagementDialog(CWnd* parent = NULL);	// 标准构造函数
+    CMVManagementDialog(CWnd* parent = NULL);    // 标准构造函数
 
 protected:
-	virtual void DoDataExchange(CDataExchange* dataExch);	// DDX/DDV 支持
-	virtual BOOL OnInitDialog();
-	afx_msg void OnSysCommand(UINT id, LPARAM param);
-	afx_msg void OnPaint();
-	afx_msg HCURSOR OnQueryDragIcon();
+    virtual void DoDataExchange(CDataExchange* dataExch);    // DDX/DDV 支持
+    virtual BOOL OnInitDialog();
+    afx_msg void OnSysCommand(UINT id, LPARAM param);
+    afx_msg void OnPaint();
+    afx_msg HCURSOR OnQueryDragIcon();
     afx_msg void OnClose();
-	DECLARE_MESSAGE_MAP()
-	
+    DECLARE_MESSAGE_MAP()
+    
 private:
-	afx_msg void OnBnClickedOtherMVType(); //MV类型为其他
+    afx_msg void OnBnClickedOtherMVType(); //MV类型为其他
     afx_msg void OnBnClickedDefinedMVType(UINT id); //MV类型为已定义的
-	afx_msg void OnTcnSelchange(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnTcnSelchange(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnBnClickedButtonSearch();
     void updateSongFullListByRecordset(_RecordsetPtr recordset);
     afx_msg LRESULT updateListSel(WPARAM waram, LPARAM param);
@@ -63,9 +63,9 @@ private:
     void updateStatusForSong();
     void updateStatusForPicture();
 
-	HICON m_icon;
-	SongInfoListControl m_songFullList;
-	CTabCtrl m_tab;
+    HICON m_icon;
+    SongInfoListControl m_songFullList;
+    CTabCtrl m_tab;
     CString m_id_from;
     CString m_id_to;
     CSplitterDialog m_splitterDialog;
