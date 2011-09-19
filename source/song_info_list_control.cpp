@@ -491,12 +491,14 @@ void CMyListCtrl::PlayMV(int row)
             FieldColumnMapping::kSongFullListFilePath));
     str += L"\"";
 
+    wstring exePathName = CIniControl::get()->GetPlayerPathName();
+
     SHELLEXECUTEINFO shExecInfo;
     shExecInfo.cbSize = sizeof(shExecInfo);
     shExecInfo.fMask = NULL;
     shExecInfo.hwnd = NULL;
     shExecInfo.lpVerb = NULL;
-    shExecInfo.lpFile = CIniControl::get()->GetPlayerPathName().c_str();
+    shExecInfo.lpFile = exePathName.c_str();
     shExecInfo.lpParameters = str;
     shExecInfo.lpDirectory = NULL;
     shExecInfo.hInstApp = NULL;
