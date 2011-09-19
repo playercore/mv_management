@@ -1,5 +1,7 @@
 #include "sql_control.h"
 
+#include <sstream>
+
 #include <boost/lexical_cast.hpp>
 
 #include "common.h"
@@ -8,6 +10,8 @@
 
 using std::wstring;
 using std::string;
+using std::wstringstream;
+using std::endl;
 using boost::lexical_cast;
 
 wstring CSQLControl::GetBaseQuery()
@@ -22,7 +26,7 @@ bool CSQLControl::initConnection()
 {
     wstring path;
     wchar_t curPath[MAX_PATH + 1];
-    GetCurrentDirectory(MAX_PATH,curPath);
+    GetCurrentDirectory(MAX_PATH, curPath);
     path = curPath;
     path += L"\\config.ini";
     try
@@ -34,20 +38,23 @@ bool CSQLControl::initConnection()
         wstring password = CIniControl::get()->GetPassword();
         wstring databaseName = CIniControl::get()->GetDatabaseName();
 
-        wstring strSQL = L"Driver={SQL Server};Server=";
-        strSQL += server;
-        strSQL += L";Database=";
-        strSQL += databaseName;
-        strSQL += L";UID=";
-        strSQL += userName;
-        strSQL += L";PWD=";
-        strSQL += password;
-
-        //m_connection->PutCursorLocation(adUseClient);
-        m_connection->Open((_bstr_t)strSQL.c_str(), "","",adConnectUnspecified);
+        wstring connDesc = L"Driver={SQL Server};Server=";
+        connDesc += server;
+        connDesc += L";Database=";
+        connDesc += databaseName;
+        connDesc += L";UID=";
+        connDesc += userName;
+        connDesc += L";PWD=";
+        connDesc += password;
+        m_connection->Open(_bstr_t(connDesc.c_str()), "", "",
+                           adConnectUnspecified);
     }
-    catch (_com_error e)
+    catch (const _com_error& e)
     {
+        wstringstream message;
+        message << "Failed to access database due to:" << endl <<
+            static_cast<wchar_t*>(e.Description());
+        MessageBox(NULL, message.str().c_str(), L"ERROR", MB_OK);
         return false;
     }
     
@@ -72,7 +79,7 @@ _RecordsetPtr CSQLControl::BaseSelect(int idFrom, int idTo, int flag)
         query += strIdTo;
     }
 
-    if (flag != -1 && flag != 3)
+    if ((flag != -1) && (flag != 3))
     {
         wstring strFlag = lexical_cast<wstring>(flag);
         query += L" and 标识=";
@@ -82,13 +89,17 @@ _RecordsetPtr CSQLControl::BaseSelect(int idFrom, int idTo, int flag)
     try
     {
         _RecordsetPtr recordSet = 
-            m_connection->Execute((_bstr_t)query.c_str(), NULL,
-            adConnectUnspecified);
+            m_connection->Execute(_bstr_t(query.c_str()), NULL,
+                                  adConnectUnspecified);
 
         return recordSet;
     }
-    catch (_com_error e)
+    catch (const _com_error& e)
     {
+        wstringstream message;
+        message << "Failed to access database due to:" << endl <<
+            static_cast<wchar_t*>(e.Description());
+        MessageBox(NULL, message.str().c_str(), L"ERROR", MB_OK);
         return NULL;
     }
 }
@@ -114,21 +125,29 @@ _RecordsetPtr CSQLControl::SelectByString(const wchar_t* str)
 
         return recordSet;
     }
-    catch (_com_error)
+    catch (const _com_error& e)
     {
+        wstringstream message;
+        message << "Failed to access database due to:" << endl <<
+            static_cast<wchar_t*>(e.Description());
+        MessageBox(NULL, message.str().c_str(), L"ERROR", MB_OK);
         return NULL;
     }
 }
 
-bool CSQLControl::UpdateByString(wchar_t* str)
+bool CSQLControl::UpdateByString(const wchar_t* str)
 {
     try
     {
-        m_connection->Execute((_bstr_t)str, NULL, adConnectUnspecified);
+        m_connection->Execute(_bstr_t(str), NULL, adConnectUnspecified);
         return true;
     }
-    catch (_com_error e)
+    catch (const _com_error& e)
     {
+        wstringstream message;
+        message << "Failed to access database due to:" << endl <<
+            static_cast<wchar_t*>(e.Description());
+        MessageBox(NULL, message.str().c_str(), L"ERROR", MB_OK);
         return false;
     }
 }
@@ -143,11 +162,15 @@ bool CSQLControl::UpdatePreviewInfo(int id, int previewTime)
     _RecordsetPtr recordSet;
     try
     {
-        recordSet = m_connection->Execute(
-            (_bstr_t)query.c_str(), NULL, adConnectUnspecified);
+        recordSet = m_connection->Execute(_bstr_t(query.c_str()), NULL,
+                                          adConnectUnspecified);
     }
-    catch (_com_error e)
+    catch (const _com_error& e)
     {
+        wstringstream message;
+        message << "Failed to access database due to:" << endl <<
+            static_cast<wchar_t*>(e.Description());
+        MessageBox(NULL, message.str().c_str(), L"ERROR", MB_OK);
         return false;
     }
 
@@ -172,12 +195,16 @@ bool CSQLControl::UpdatePreviewInfo(int id, int previewTime)
         query += L")";
         try
         {
-            m_connection->Execute((_bstr_t)query.c_str(), NULL, 
+            m_connection->Execute(_bstr_t(query.c_str()), NULL, 
                                   adConnectUnspecified);
             return true;
         }
-        catch (_com_error e)
+        catch (const _com_error& e)
         {
+            wstringstream message;
+            message << "Failed to access database due to:" << endl <<
+                static_cast<wchar_t*>(e.Description());
+            MessageBox(NULL, message.str().c_str(), L"ERROR", MB_OK);
             return false;
         }
     }
@@ -192,18 +219,23 @@ bool CSQLControl::UpdatePreviewInfo(int id, int previewTime)
         query += strID;
         try
         {
-            m_connection->Execute((_bstr_t)query.c_str(), NULL, 
+            m_connection->Execute(_bstr_t(query.c_str()), NULL, 
                                   adConnectUnspecified);
             return true;
         }
-        catch (_com_error e)
+        catch (const _com_error& e)
         {
+            wstringstream message;
+            message << "Failed to access database due to:" << endl <<
+                static_cast<wchar_t*>(e.Description());
+            MessageBox(NULL, message.str().c_str(), L"ERROR", MB_OK);
             return false;
         }
     }
 }
 
-_RecordsetPtr CSQLControl::SelectByLeftListView(wchar_t* name, wchar_t* oldHash)
+_RecordsetPtr CSQLControl::SelectByLeftListView(const wchar_t* name,
+                                                const wchar_t* oldHash)
 {
     wstring query = L"SELECT 歌曲编号,文件路径,旧哈希值,编辑重命名,是否有交错,"
         L"歌曲状态,备注,原唱音轨,歌曲类型,新哈希值,总音轨数,画质级别,"
@@ -220,12 +252,16 @@ _RecordsetPtr CSQLControl::SelectByLeftListView(wchar_t* name, wchar_t* oldHash)
     try
     {
         _RecordsetPtr recordSet = m_connection->Execute(
-            (_bstr_t)query.c_str(), NULL, adConnectUnspecified);
+            _bstr_t(query.c_str()), NULL, adConnectUnspecified);
 
         return recordSet;
     }
-    catch (_com_error)
+    catch (const _com_error& e)
     {
+        wstringstream message;
+        message << "Failed to access database due to:" << endl <<
+            static_cast<wchar_t*>(e.Description());
+        MessageBox(NULL, message.str().c_str(), L"ERROR", MB_OK);
         return NULL;
     }
 }
@@ -295,12 +331,13 @@ void CSQLControl::StatusStoreProcForSong(
         command.Detach();
         m_connection->PutCursorLocation(adUseServer);
     }
-    catch (_com_error e)
+    catch (const _com_error& e)
     {
-        MessageBox(NULL, e.Description(), L"", MB_OK);
+        wstringstream message;
+        message << "Failed to access database due to:" << endl <<
+            static_cast<wchar_t*>(e.Description());
+        MessageBox(NULL, message.str().c_str(), L"ERROR", MB_OK);
     }
- 
-
 }
 
 void CSQLControl::StatusStoreProcForPic( 
@@ -364,9 +401,11 @@ void CSQLControl::StatusStoreProcForPic(
         command.Detach();
         m_connection->PutCursorLocation(adUseServer);
     }
-    catch (_com_error e)
+    catch (const _com_error& e)
     {
-        MessageBox(NULL, e.Description(), L"", MB_OK);
+        wstringstream message;
+        message << "Failed to access database due to:" << endl <<
+            static_cast<wchar_t*>(e.Description());
+        MessageBox(NULL, message.str().c_str(), L"ERROR", MB_OK);
     }
 }
-

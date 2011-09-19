@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
 #include "afxdialogex.h"
 #include "afxdb.h"
 
@@ -24,6 +25,7 @@ using std::unique_ptr;
 using std::wstringstream;
 using std::vector;
 using boost::filesystem3::path;
+using boost::lexical_cast;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -420,7 +422,9 @@ LRESULT CMVManagementDialog::updateListSel(WPARAM waram, LPARAM param)
     GetDlgItem(IDC_EDIT_NOTES)->SetWindowTextW(item->Notes);
     GetDlgItem(IDC_EDIT_NEW_HASH)->SetWindowText(item->NewHash);
     GetDlgItem(IDC_EDIT_OLD_HASH)->SetWindowTextW(item->OldHash);
-    int trackType = _wtoi((LPTSTR)(LPCTSTR)item->TrackType);
+    wstring t = item->TrackType.GetBuffer();
+    const int defaultTrackType = 2;
+    int trackType = t.empty() ? defaultTrackType : lexical_cast<int>(t);
 
     CheckRadioButton(IDC_RADIO_0, IDC_RADIO_5, IDC_RADIO_0 + trackType);
     

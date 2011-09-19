@@ -55,7 +55,10 @@ BOOL CSplitterDialog::OnInitDialog()
     rightListCtrl.ModifyStyle(0, LVS_REPORT|WS_VSCROLL|WS_HSCROLL|LVS_SHOWSELALWAYS|LVS_SINGLESEL);
     rightListCtrl.SetExtendedStyle(LVS_EX_GRIDLINES|LVS_EX_FULLROWSELECT); 
 
-    _RecordsetPtr recordset = CSQLControl::get()->BaseSelect();
+    _RecordsetPtr recordset = CSQLControl::get()->BaseSelect(0, 0, -1);
+    if (!recordset)
+        return FALSE;
+
     Fields* fields;
     recordset->get_Fields(&fields);
     int num = fields->GetCount() - NUM_COLUMNS_EXCLUDED;

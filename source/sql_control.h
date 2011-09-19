@@ -14,13 +14,15 @@ public:
     CSQLControl();
     ~CSQLControl();
 
-    _RecordsetPtr BaseSelect(int idFrom = -1, int idTo = -1, int flag = -1);
+    _RecordsetPtr BaseSelect(int idFrom, int idTo, int flag);
     _RecordsetPtr SelectByString(const wchar_t* str);
-    bool UpdateByString(wchar_t* str);
+    bool UpdateByString(const wchar_t* str);
     bool UpdatePreviewInfo(int id, int previewTime);
-    _RecordsetPtr SelectByLeftListView(wchar_t* name, wchar_t* oldHash);
+    _RecordsetPtr SelectByLeftListView(const wchar_t* name,
+                                       const wchar_t* oldHash);
     void StatusStoreProcForSong(int from, int to, int flag, int* curReviewed, 
-                         int* todayReviewed, int* needReview, int* totalSong);
+                                int* todayReviewed, int* needReview,
+                                int* totalSong);
 
     void StatusStoreProcForPic(int from, int to, int* curReviewed, 
         int* todayReviewed, int* needReview, int* totalSong);
